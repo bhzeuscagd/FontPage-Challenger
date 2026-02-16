@@ -1,0 +1,47 @@
+---
+import Layout from "../layouts/Layout.astro";
+---
+
+<Layout title="Dashboard - Frontpage">
+    <div class="p-10">
+        <h1 class="text-3xl font-bold">Welcome to Dashboard</h1>
+        <div id="user-info" class="mt-4 text-gray-600">
+            Loading user info...
+        </div>
+        <button
+            id="logout-btn"
+            class="mt-6 rounded bg-red-600 px-4 py-2 text-white hover:bg-red-500"
+            >Sign Out</button
+        >
+        <a href="/" class="block mt-4 text-blue-600 hover:underline"
+            >Back to Home</a
+        >
+    </div>
+</Layout>
+
+<script>
+    import { supabase } from "../lib/supabase";
+
+    const userInfo = document.querySelector("#user-info") as HTMLElement;
+    const logoutBtn = document.querySelector("#logout-btn") as HTMLElement;
+
+    async function checkUser() {
+        const {
+            data: { session },
+        } = await supabase.auth.getSession();
+        if (!session) {
+            window.location.href = "/login";
+            return;
+        }
+        userInfo.textContent = `Logged in as: ${session.user.email}`;
+    }
+
+    checkUser();
+
+    if (logoutBtn) {
+        logoutBtn.addEventListener("click", async () => {
+            await supabase.auth.signOut();
+            window.location.href = "/login";
+        });
+    }
+</script>
