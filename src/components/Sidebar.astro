@@ -1,0 +1,103 @@
+---
+import Icon from "./Icon.astro";
+
+const menuItems = [
+  { label: "Today", icon: "Calendar", href: "/dashboard" },
+  { label: "Read Later", icon: "Bookmark", href: "/bookmarks" },
+  { label: "My Feeds", icon: "Rss", href: "/feeds" },
+  { label: "Explore", icon: "Globe", href: "/explore" },
+  { label: "Settings", icon: "Settings", href: "/settings" },
+];
+---
+
+<aside
+  class="w-64 flex flex-col rounded-2xl bg-bg-secondary/50 border border-border/50 h-full"
+>
+  <div class="p-6">
+    <h1
+      class="text-xl font-serif font-bold text-accent tracking-tight flex items-center gap-2"
+    >
+      <Icon name="Rss" size={24} />
+      Frontpage
+    </h1>
+  </div>
+
+  <nav class="flex-1 px-3">
+    <ul class="space-y-1">
+      {
+        menuItems.map((item) => (
+          <li>
+            <a
+              href={item.href}
+              class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-text-secondary hover:text-text-primary hover:bg-surface hover:shadow-sm transition-all group"
+            >
+              <span class="opacity-70 group-hover:opacity-100 transition-opacity text-accent">
+                <Icon name={item.icon} size={20} />
+              </span>
+              <span class="text-sm font-medium">{item.label}</span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+
+    <div class="mt-8">
+      <div class="px-3 flex items-center justify-between mb-2">
+        <h3 class="text-xs font-mono uppercase text-text-secondary opacity-60">
+          Subscriptions
+        </h3>
+        <button
+          class="text-text-secondary hover:text-accent transition-colors p-1 hover:bg-surface rounded-md"
+        >
+          <Icon name="Plus" size={14} />
+        </button>
+      </div>
+      <ul class="space-y-0.5">
+        <li>
+          <a
+            href="#"
+            class="flex items-center gap-2 px-3 py-2 text-sm text-text-secondary hover:text-text-primary rounded-lg hover:bg-surface transition-colors group"
+          >
+            <span class="w-2 h-2 rounded-full bg-accent shrink-0"></span>
+            <span class="flex-1 truncate">TechCrunch</span>
+            <span class="opacity-0 group-hover:opacity-100 text-text-secondary">
+              <Icon name="External" size={12} />
+            </span>
+          </a>
+        </li>
+        <li>
+          <a
+            href="#"
+            class="flex items-center gap-2 px-3 py-2 text-sm text-text-secondary hover:text-text-primary rounded-lg hover:bg-surface transition-colors group"
+          >
+            <span class="w-2 h-2 rounded-full bg-blue-500 shrink-0"></span>
+            <span class="flex-1 truncate">The Verge</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+  </nav>
+
+  <div class="p-3 mt-auto">
+    <div
+      class="flex items-center gap-3 hover:bg-surface p-2 rounded-xl border border-transparent hover:border-border transition-all cursor-pointer group"
+    >
+      <div
+        class="w-9 h-9 rounded-full bg-surface border border-border flex items-center justify-center text-xs font-bold text-text-secondary group-hover:text-text-primary group-hover:border-accent/30 transition-colors"
+      >
+        <Icon name="User" size={16} />
+      </div>
+      <div class="flex-1 min-w-0">
+        <p class="text-sm font-medium text-text-primary truncate">User Name</p>
+        <p class="text-xs text-text-secondary truncate opacity-80">
+          user@example.com
+        </p>
+      </div>
+      <Icon
+        name="Chevron"
+        size={16}
+        class="text-text-secondary opacity-50 group-hover:opacity-100"
+      />
+    </div>
+  </div>
+</aside>

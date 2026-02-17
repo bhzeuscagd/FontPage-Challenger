@@ -1,0 +1,41 @@
+---
+import "../styles/global.css";
+import Fonts from "../components/Fonts.astro";
+import Sidebar from "../components/Sidebar.astro";
+
+interface Props {
+    title: string;
+}
+
+const { title } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="description" content="Frontpage" />
+        <meta name="viewport" content="width=device-width" />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <meta name="generator" content={Astro.generator} />
+        <title>{title}</title>
+        <Fonts />
+    </head>
+    <body
+        class="bg-bg-primary text-text-primary antialiased font-sans h-screen flex overflow-hidden p-3 gap-3"
+    >
+        <!-- Sidebar Navigation (Not fixed anymore, part of flex) -->
+        <Sidebar />
+
+        <!-- Main Content Area - "Floating" Card -->
+        <main
+            class="flex-1 bg-surface rounded-2xl border border-border shadow-sm relative overflow-hidden flex flex-col"
+        >
+            <div class="flex-1 overflow-y-auto">
+                <div class="max-w-5xl mx-auto px-8 py-8">
+                    <slot />
+                </div>
+            </div>
+        </main>
+    </body>
+</html>
