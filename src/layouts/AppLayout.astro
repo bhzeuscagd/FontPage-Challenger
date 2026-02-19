@@ -2,6 +2,7 @@
 import "../styles/global.css";
 import Fonts from "../components/Fonts.astro";
 import Sidebar from "../components/Sidebar.astro";
+import ThemeToggle from "../components/ThemeToggle.astro";
 
 interface Props {
     title: string;
@@ -20,22 +21,32 @@ const { title } = Astro.props;
         <meta name="generator" content={Astro.generator} />
         <title>{title}</title>
         <Fonts />
+        <script is:inline>
+            (function () {
+                const saved = localStorage.getItem("theme");
+                if (saved === "dark") {
+                    document.documentElement.setAttribute("data-theme", "dark");
+                }
+            })();
+        </script>
     </head>
     <body
-        class="bg-bg-primary text-text-primary antialiased font-sans h-screen flex overflow-hidden p-3 gap-3"
+        class="bg-bg-primary text-text-primary antialiased font-sans h-screen flex overflow-hidden"
     >
-        <!-- Sidebar Navigation (Not fixed anymore, part of flex) -->
+        <!-- Sidebar Navigation -->
         <Sidebar />
 
-        <!-- Main Content Area - "Floating" Card -->
-        <main
-            class="flex-1 bg-surface rounded-2xl border border-border shadow-sm relative overflow-hidden flex flex-col"
-        >
+        <!-- Vertical line separator -->
+        <div class="w-px bg-border self-stretch my-6"></div>
+
+        <!-- Main Content Area -->
+        <main class="flex-1 relative overflow-hidden flex flex-col">
             <div class="flex-1 overflow-y-auto">
-                <div class="max-w-5xl mx-auto px-8 py-8">
+                <div class="max-w-6xl mx-auto px-8 py-8">
                     <slot />
                 </div>
             </div>
         </main>
+        <ThemeToggle />
     </body>
 </html>

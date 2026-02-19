@@ -6,5 +6,7 @@ import tailwindcss from '@tailwindcss/vite'
 export default defineConfig({
   vite: {
     plugins: [tailwindcss()]
-  }
+  },
+  // Ensure we are in SSR mode if needed for auth, but for now mostly static/hybrid
+  output: 'server'
 })

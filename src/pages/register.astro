@@ -1,115 +1,299 @@
 ---
 import Layout from "../layouts/Layout.astro";
+
+const initialMode = "register";
 ---
 
 <Layout title="Sign Up - Frontpage">
-    <div class="flex min-h-full flex-col justify-center px-6 py-12 lg:px-8">
-        <div class="sm:mx-auto sm:w-full sm:max-w-sm">
-            <h2
-                class="mt-10 text-center text-2xl font-bold leading-9 tracking-tight text-gray-900"
-            >
-                Create your account
-            </h2>
-        </div>
-
-        <div class="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
-            <form class="space-y-6" id="register-form">
-                <div>
-                    <label
-                        for="email"
-                        class="block text-sm font-medium leading-6 text-gray-900"
-                        >Email address</label
-                    >
-                    <div class="mt-2">
-                        <input
-                            id="email"
-                            name="email"
-                            type="email"
-                            autocomplete="email"
-                            required
-                            class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 pl-2"
-                        />
-                    </div>
-                </div>
-
-                <div>
-                    <label
-                        for="password"
-                        class="block text-sm font-medium leading-6 text-gray-900"
-                        >Password</label
-                    >
-                    <div class="mt-2">
-                        <input
-                            id="password"
-                            name="password"
-                            type="password"
-                            autocomplete="new-password"
-                            required
-                            class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 pl-2"
-                        />
-                    </div>
-                </div>
-
-                <div>
-                    <button
-                        type="submit"
-                        class="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-                        >Sign up</button
-                    >
-                </div>
-            </form>
-
-            <p class="mt-10 text-center text-sm text-gray-500">
-                Already a member?
-                <a
-                    href="/login"
-                    class="font-semibold leading-6 text-indigo-600 hover:text-indigo-500"
-                    >Sign in</a
-                >
-            </p>
+    <section
+        class="relative flex min-h-screen overflow-hidden bg-bg-primary"
+        id="auth-container"
+    >
+        <!-- OVERLAY PANEL (the sliding door) -->
+        <div
+            id="overlay-panel"
+            class="absolute top-0 left-0 w-1/2 h-full z-20 flex flex-col items-center justify-center p-16 text-center transition-transform duration-700 ease-[cubic-bezier(0.76,0,0.24,1)]"
+            style="background-color: var(--color-bg-primary); transform: translateX(100%);"
+        >
+            <!-- Login welcome (hidden when mode=register) -->
             <div
-                id="error-message"
-                class="text-red-500 text-sm mt-4 text-center hidden"
+                id="overlay-login"
+                class="flex flex-col items-start text-start gap-4 transition-opacity duration-500 opacity-0 pointer-events-none"
             >
+                <h2 class="font-serif text-2xl text-text-primary">Log in</h2>
+                <h1
+                    class="font-mono font-bold text-7xl leading-none text-text-primary"
+                >
+                    WELCOME<br />BACK
+                </h1>
+                <p class="text-text-secondary max-w-xs">
+                    Sign back in to your account to access your notices
+                </p>
+            </div>
+
+            <!-- Register welcome (visible when mode=register) -->
+            <div
+                id="overlay-register"
+                class="absolute inset-0 flex flex-col items-end text-end justify-center gap-4 p-16 transition-opacity duration-500"
+            >
+                <h2 class="font-serif text-2xl text-text-primary">Sign up</h2>
+                <h1
+                    class="font-mono font-bold text-7xl leading-none text-text-primary"
+                >
+                    THE NEWS<br />ERA STARTS<br />NOW
+                </h1>
+                <p class="text-text-secondary max-w-xs">
+                    Join Frontpage and never miss what matters. Your
+                    personalized news feed awaits.
+                </p>
             </div>
         </div>
-    </div>
+
+        <!-- LOGIN FORM (sits on the right half, hidden initially for register) -->
+        <div
+            id="login-panel"
+            class="absolute top-0 right-0 w-1/2 h-full flex flex-col justify-center px-6 py-12 lg:px-8 transition-opacity duration-500 opacity-0 pointer-events-none"
+        >
+            <div class="sm:mx-auto sm:w-full sm:max-w-sm">
+                <h2
+                    class="text-center text-2xl font-bold tracking-tight text-text-primary"
+                >
+                    Sign in to your account
+                </h2>
+            </div>
+            <div class="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
+                <form class="flex flex-col gap-6" id="login-form">
+                    <div>
+                        <label
+                            for="login-email"
+                            class="block text-sm font-medium text-text-primary"
+                            >Email address</label
+                        >
+                        <div class="mt-2">
+                            <input
+                                id="login-email"
+                                name="email"
+                                type="email"
+                                autocomplete="email"
+                                required
+                                class="block w-full rounded-md border border-border bg-bg-primary px-2 py-1.5 text-sm text-text-primary focus:outline-2 focus:outline-text-primary"
+                            />
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex items-center justify-between">
+                            <label
+                                for="login-password"
+                                class="block text-sm font-medium text-text-primary"
+                                >Password</label
+                            >
+                            <a
+                                href="#"
+                                class="text-sm font-semibold text-text-primary no-underline hover:opacity-80"
+                                >Forgot password?</a
+                            >
+                        </div>
+                        <div class="mt-2">
+                            <input
+                                id="login-password"
+                                name="password"
+                                type="password"
+                                autocomplete="current-password"
+                                required
+                                class="block w-full rounded-md border border-border bg-bg-primary px-2 py-1.5 text-sm text-text-primary focus:outline-2 focus:outline-text-primary"
+                            />
+                        </div>
+                    </div>
+                    <div>
+                        <button
+                            type="submit"
+                            class="flex w-full justify-center rounded-md bg-text-primary px-3 py-1.5 text-sm font-semibold text-bg-primary shadow-sm cursor-pointer hover:opacity-90"
+                        >
+                            Sign in
+                        </button>
+                    </div>
+                </form>
+                <p class="mt-10 text-center text-sm text-text-secondary">
+                    Not a member?
+                    <button
+                        id="go-register"
+                        class="font-semibold text-text-primary cursor-pointer bg-transparent border-none hover:opacity-80"
+                    >
+                        Start a 14 day free trial
+                    </button>
+                </p>
+                <div
+                    id="login-error"
+                    class="text-red-500 text-sm mt-4 text-center hidden"
+                >
+                </div>
+            </div>
+        </div>
+
+        <!-- REGISTER FORM (sits on the left half, visible initially for register) -->
+        <div
+            id="register-panel"
+            class="absolute top-0 left-0 w-1/2 h-full flex flex-col justify-center px-6 py-12 lg:px-8 transition-opacity duration-500"
+        >
+            <div class="sm:mx-auto sm:w-full sm:max-w-sm">
+                <h2
+                    class="text-center text-2xl font-bold tracking-tight text-text-primary"
+                >
+                    Create your account
+                </h2>
+            </div>
+            <div class="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
+                <form class="flex flex-col gap-6" id="register-form">
+                    <div>
+                        <label
+                            for="reg-email"
+                            class="block text-sm font-medium text-text-primary"
+                            >Email address</label
+                        >
+                        <div class="mt-2">
+                            <input
+                                id="reg-email"
+                                name="email"
+                                type="email"
+                                autocomplete="email"
+                                required
+                                class="block w-full rounded-md border border-border bg-bg-primary px-2 py-1.5 text-sm text-text-primary focus:outline-2 focus:outline-text-primary"
+                            />
+                        </div>
+                    </div>
+                    <div>
+                        <label
+                            for="reg-password"
+                            class="block text-sm font-medium text-text-primary"
+                            >Password</label
+                        >
+                        <div class="mt-2">
+                            <input
+                                id="reg-password"
+                                name="password"
+                                type="password"
+                                autocomplete="new-password"
+                                required
+                                class="block w-full rounded-md border border-border bg-bg-primary px-2 py-1.5 text-sm text-text-primary focus:outline-2 focus:outline-text-primary"
+                            />
+                        </div>
+                    </div>
+                    <div>
+                        <button
+                            type="submit"
+                            class="flex w-full justify-center rounded-md bg-text-primary px-3 py-1.5 text-sm font-semibold text-bg-primary shadow-sm cursor-pointer hover:opacity-90"
+                        >
+                            Sign up
+                        </button>
+                    </div>
+                </form>
+                <p class="mt-10 text-center text-sm text-text-secondary">
+                    Already a member?
+                    <button
+                        id="go-login"
+                        class="font-semibold text-text-primary cursor-pointer bg-transparent border-none hover:opacity-80"
+                    >
+                        Sign in
+                    </button>
+                </p>
+                <div
+                    id="register-error"
+                    class="text-red-500 text-sm mt-4 text-center hidden"
+                >
+                </div>
+            </div>
+        </div>
+    </section>
 </Layout>
 
 <script>
     import { supabase } from "../lib/supabase";
 
-    const form = document.querySelector("#register-form") as HTMLFormElement;
-    const errorMessage = document.querySelector(
-        "#error-message",
+    const overlay = document.getElementById("overlay-panel")!;
+    const overlayLogin = document.getElementById("overlay-login")!;
+    const overlayRegister = document.getElementById("overlay-register")!;
+    const loginPanel = document.getElementById("login-panel")!;
+    const registerPanel = document.getElementById("register-panel")!;
+    const goRegisterBtn = document.getElementById("go-register")!;
+    const goLoginBtn = document.getElementById("go-login")!;
+
+    function setMode(mode: string) {
+        if (mode === "register") {
+            overlay.style.transform = "translateX(100%)";
+            overlayLogin.style.opacity = "0";
+            overlayLogin.style.pointerEvents = "none";
+            overlayRegister.style.opacity = "1";
+            overlayRegister.style.pointerEvents = "auto";
+            registerPanel.style.opacity = "1";
+            registerPanel.style.pointerEvents = "auto";
+            loginPanel.style.opacity = "0";
+            loginPanel.style.pointerEvents = "none";
+            history.replaceState(null, "", "/register");
+            document.title = "Sign Up - Frontpage";
+        } else {
+            overlay.style.transform = "translateX(0)";
+            overlayLogin.style.opacity = "1";
+            overlayLogin.style.pointerEvents = "auto";
+            overlayRegister.style.opacity = "0";
+            overlayRegister.style.pointerEvents = "none";
+            loginPanel.style.opacity = "1";
+            loginPanel.style.pointerEvents = "auto";
+            registerPanel.style.opacity = "0";
+            registerPanel.style.pointerEvents = "none";
+            history.replaceState(null, "", "/login");
+            document.title = "Sign In - Frontpage";
+        }
+    }
+
+    goRegisterBtn.addEventListener("click", () => setMode("register"));
+    goLoginBtn.addEventListener("click", () => setMode("login"));
+
+    // Login form
+    const loginForm = document.querySelector("#login-form") as HTMLFormElement;
+    const loginError = document.querySelector("#login-error") as HTMLElement;
+
+    loginForm?.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const fd = new FormData(loginForm);
+        const { data, error } = await supabase.auth.signInWithPassword({
+            email: fd.get("email") as string,
+            password: fd.get("password") as string,
+        });
+        if (error) {
+            loginError.textContent = error.message;
+            loginError.classList.remove("hidden");
+        } else {
+            window.location.href = "/dashboard";
+        }
+    });
+
+    // Register form
+    const registerForm = document.querySelector(
+        "#register-form",
+    ) as HTMLFormElement;
+    const registerError = document.querySelector(
+        "#register-error",
     ) as HTMLElement;
 
-    if (form) {
-        form.addEventListener("submit", async (e) => {
-            e.preventDefault();
-            const formData = new FormData(form);
-            const email = formData.get("email") as string;
-            const password = formData.get("password") as string;
-
-            const { data, error } = await supabase.auth.signUp({
-                email,
-                password,
-            });
-
-            if (error) {
-                errorMessage.textContent = error.message;
-                errorMessage.classList.remove("hidden");
-            } else {
-                // Check if email confirmation is required (default in Supabase)
-                if (data.session) {
-                    window.location.href = "/dashboard";
-                } else {
-                    errorMessage.textContent =
-                        "Check your email for the confirmation link.";
-                    errorMessage.classList.remove("hidden", "text-red-500");
-                    errorMessage.classList.add("text-green-600");
-                }
-            }
+    registerForm?.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const fd = new FormData(registerForm);
+        const { data, error } = await supabase.auth.signUp({
+            email: fd.get("email") as string,
+            password: fd.get("password") as string,
         });
-    }
+        if (error) {
+            registerError.textContent = error.message;
+            registerError.classList.remove("hidden");
+        } else {
+            if (data.session) {
+                window.location.href = "/dashboard";
+            } else {
+                registerError.textContent =
+                    "Check your email for the confirmation link.";
+                registerError.classList.remove("hidden", "text-red-500");
+                registerError.classList.add("text-green-600");
+            }
+        }
+    });
 </script>

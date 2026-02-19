@@ -2,9 +2,8 @@
 import AppLayout from "../layouts/AppLayout.astro";
 import { fetchFeed } from "../lib/feed-parser";
 import Icon from "../components/Icon.astro";
-import Icon from "../components/Icon.astro";
 
-// Fetch sample feed server-side (for demo purposes)
+// Fetch sample feed server-side
 let feed = null;
 try {
     feed = await fetchFeed("https://astro.build/rss.xml");
@@ -14,108 +13,126 @@ try {
 ---
 
 <AppLayout title="Dashboard - Frontpage">
-    <div class="mb-8 flex items-center justify-between">
-        <div>
-            <h1
-                class="text-3xl font-bold font-serif text-text-primary tracking-tight"
-            >
-                Today
-            </h1>
-            <p class="text-text-secondary mt-1">
-                Updates from your subscriptions
-            </p>
-        </div>
-        <div
-            id="user-info"
-            class="text-sm font-medium text-text-secondary bg-surface px-3 py-1.5 rounded-full border border-border"
-        >
-            Loading...
-        </div>
+    <!-- Subscriptions filter tabs -->
+    <div class="flex items-center gap-6 pb-4">
+        <span class="text-xs font-mono uppercase text-text-secondary opacity-60">Subscriptions</span>
+        <button class="text-sm font-medium text-text-primary border-b-2 border-text-primary pb-1">All</button>
+        <button class="sub-tab text-sm font-medium text-text-secondary hover:text-text-primary transition-colors pb-1 relative">
+            TechCrunch
+        </button>
+        <button class="sub-tab text-sm font-medium text-text-secondary hover:text-text-primary transition-colors pb-1 relative">
+            The Verge
+        </button>
+        <button class="ml-auto text-text-secondary hover:bg-text-primary hover:text-bg-primary transition-all p-1 px-2 rounded-md flex items-center gap-1 text-xs">
+            <Icon name="Plus" size={14} />
+            Add
+        </button>
     </div>
 
-    <!-- Feed Grid -->
-    <div class="grid gap-6">
+    <!-- Thick horizontal line under tabs -->
+    <div class="h-[2px] bg-text-primary/20 mb-0"></div>
+
+    <!-- 3-Column News Grid — flush cards, thick line separators -->
+    <div class="news-grid">
         {
             feed ? (
-                feed.items.map((item) => (
-                    <article class="rss-card bg-surface rounded-lg p-6 border border-border hover:shadow-glow transition-all group">
-                        <div class="flex gap-6 items-start">
-                            {item.imageUrl && (
-                                <div class="w-32 h-24 flex-shrink-0 rounded-md overflow-hidden bg-bg-secondary">
-                                    <img
-                                        src={item.imageUrl}
-                                        alt=""
-                                        class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                                        loading="lazy"
-                                    />
-                                </div>
-                            )}
-                            <div class="flex-1 min-w-0">
-                                <div class="flex items-center gap-2 mb-2">
-                                    <span class="text-xs font-mono text-accent bg-accent-subtle px-2 py-0.5 rounded-full">
-                                        {feed.title}
-                                    </span>
-                                    <time
-                                        class="text-xs text-text-secondary"
-                                        datetime={item.pubDate}
-                                    >
-                                        {new Date(
-                                            item.pubDate,
-                                        ).toLocaleDateString(undefined, {
+                feed.items.map((item: any, idx: number) => (
+                    <a
+                        href={item.link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="group block no-underline news-card"
+                    >
+                        <!-- Card Image -->
+                        {item.imageUrl ? (
+                            <div class="aspect-16/10 overflow-hidden bg-bg-secondary">
+                                <img
+                                    src={item.imageUrl}
+                                    alt=""
+                                    class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                    loading="lazy"
+                                />
+                            </div>
+                        ) : (
+                            <div class="aspect-16/10 bg-bg-secondary flex items-center justify-center">
+                                <Icon name="Rss" size={48} class="text-text-secondary opacity-30" />
+                            </div>
+                        )}
+
+                        <!-- Card Content -->
+                        <div class="p-5">
+                            <h2 class="text-lg font-bold text-text-primary leading-snug mb-6 group-hover:opacity-70 transition-opacity line-clamp-3">
+                                {item.title}
+                            </h2>
+
+                            <!-- Footer: Category • Date • Arrow -->
+                            <div class="flex items-center justify-between text-sm text-text-secondary">
+                                <div class="flex items-center gap-2">
+                                    <span class="font-medium text-text-primary text-xs">{feed.title || "Feed"}</span>
+                                    <span class="text-xs">▪</span>
+                                    <time datetime={item.pubDate} class="text-xs">
+                                        {new Date(item.pubDate).toLocaleDateString("en-US", {
                                             month: "short",
                                             day: "numeric",
-                                            hour: "2-digit",
-                                            minute: "2-digit",
+                                            year: "numeric",
                                         })}
                                     </time>
                                 </div>
-
-                                <h2 class="text-xl font-bold text-text-primary mb-2 leading-tight group-hover:text-accent transition-colors">
-                                    <a
-                                        href={item.link}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                    >
-                                        {item.title}
-                                    </a>
-                                </h2>
-
-                                <p class="text-text-secondary line-clamp-2 text-sm leading-relaxed mb-4">
-                                    {item.contentSnippet ||
-                                        item.content
-                                            .replace(/<[^>]*>?/gm, "")
-                                            .substring(0, 150) + "..."}
-                                </p>
-
-                                <div class="flex items-center gap-4 text-text-secondary text-sm">
-                                    <button class="hover:text-text-primary transition-colors flex items-center gap-1.5">
-                                        <span class="text-lg">🔖</span> Save
-                                    </button>
-                                    <button class="hover:text-text-primary transition-colors flex items-center gap-1.5">
-                                        <span class="text-lg">📤</span> Share
-                                    </button>
-                                </div>
+                                <span class="w-6 h-6 flex items-center justify-center rounded-full border border-text-secondary/30 text-text-secondary group-hover:border-text-primary group-hover:text-text-primary transition-colors text-xs">
+                                    ↗
+                                </span>
                             </div>
                         </div>
-                    </article>
+                    </a>
                 ))
             ) : (
-                <div class="p-12 text-center text-text-secondary bg-surface rounded-lg border border-border border-dashed">
+                <div class="col-span-3 p-12 text-center text-text-secondary">
                     <p>No feed content available or error loading feed.</p>
                 </div>
             )
         }
     </div>
 
-    <!-- Sign Out Button (Hidden but accessible via JS) -->
     <button id="logout-btn" class="hidden">Sign Out</button>
 </AppLayout>
+
+<style>
+    .news-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .news-card {
+        border-right: 2px solid var(--color-border);
+        border-bottom: 2px solid var(--color-border);
+    }
+
+    /* Remove right border on every 3rd card */
+    .news-card:nth-child(3n) {
+        border-right: none;
+    }
+
+    /* Expanding underline on hover */
+    .sub-tab::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 0;
+        height: 2px;
+        background-color: var(--color-text-primary);
+        transition: width 0.3s ease;
+    }
+
+    .sub-tab:hover::after {
+        width: 100%;
+    }
+</style>
 
 <script>
     import { supabase } from "../lib/supabase";
 
     const userInfo = document.querySelector("#user-info") as HTMLElement;
-    const logoutBtn = document.querySelector("#logout-btn") as HTMLElement; // Could move to sidebar
 
     async function checkUser() {
         const {
@@ -133,15 +150,4 @@ try {
     }
 
     checkUser();
-
-    // If we move sign out to sidebar later, we'll need to update this selector
-    // For now, let's just make sure it doesn't crash if button is missing
-    /* 
-    if (logoutBtn) {
-        logoutBtn.addEventListener("click", async () => {
-            await supabase.auth.signOut();
-            window.location.href = "/login";
-        });
-    }
-    */
 </script>

@@ -1,38 +1,56 @@
 @import 'tailwindcss';
+@import '@fontsource/inter/400.css';
+@import '@fontsource/inter/600.css';
+@import '@fontsource-variable/newsreader';
+@import '@fontsource-variable/jetbrains-mono';
 
 /* 1. TOKENS DE DISEÑO (Variables de Entorno) */
 :root {
-  /* MODO LIGERO */
-  --color-bg-primary: #ffffff;
-  --color-bg-secondary: #f9f9f9;
-  --color-surface: #ffffff;
-  --color-text-primary: #111111;
-  --color-text-secondary: #666666;
-  --color-border: #eeeeee;
+  /* MODO CLARO */
+  --color-black: #241e1e;
+  --color-dark-espresso: #2e2522;
+  --color-soft-clay: #e5ded6;
+  --color-dark-green: #203435;
+  --color-dark-shade-100: #cec7c0;
+  --color-dark-shade-200: #b7b0aa;
+  --color-link: #0d48c7;
 
-  /* ACENTO RSS */
+  --color-bg-primary: var(--color-soft-clay);
+  --color-bg-secondary: #f0ebe4;
+  --color-surface: #ffffff;
+  --color-text-primary: var(--color-dark-espresso);
+  --color-text-secondary: #666666;
+  --color-text-tertiary: #999999;
+  --color-border: var(--color-dark-shade-100);
+
+  /* ACENTO RSS (Naranja vibrante) */
   --color-accent: #ff5500;
   --color-accent-hover: #e64d00;
-  --color-accent-subtle: rgba(255, 85, 0, 0.1);
+  --color-accent-subtle: rgba(255, 85, 0, 0.08);
+
+  background-color: var(--color-soft-clay);
+  -webkit-tap-highlight-color: transparent;
+  --menu-height: 5.56rem;
 
   /* TEXTURA */
   --bg-grain: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    /* MODO OSCURO NEGRO GRANULADO */
-    --color-bg-primary: #080808;
-    --color-bg-secondary: #0f0f0f;
-    --color-surface: #141414;
-    --color-text-primary: #ffffff;
-    --color-text-secondary: #a0a0a0;
-    --color-border: #1f1f1f;
+[data-theme='dark'] {
+  /* MODO OSCURO */
+  --color-bg-primary: #050505;
+  --color-bg-secondary: #0d0d0d;
+  --color-surface: #121212;
+  --color-text-primary: #f5f5f5;
+  --color-text-secondary: #a0a0a0;
+  --color-text-tertiary: #666666;
+  --color-border: #1a1a1a;
 
-    --color-accent: #ff5500;
-    --color-accent-hover: #ff7733;
-    --color-accent-subtle: rgba(255, 85, 0, 0.15);
-  }
+  --color-accent: #ff5500;
+  --color-accent-hover: #ff7733;
+  --color-accent-subtle: rgba(255, 85, 0, 0.12);
+
+  background-color: var(--color-bg-primary);
 }
 
 /* 2. CONFIGURACIÓN DE TAILWIND V4 */
@@ -43,25 +61,17 @@
   --color-border: var(--color-border);
   --color-text-primary: var(--color-text-primary);
   --color-text-secondary: var(--color-text-secondary);
+  --color-text-tertiary: var(--color-text-tertiary);
   --color-accent: var(--color-accent);
   --color-accent-hover: var(--color-accent-hover);
   --color-accent-subtle: var(--color-accent-subtle);
-}
 
-@theme {
-  /* TIPOGRAFÍAS RECOMENDADAS PARA RSS */
+  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-serif: 'Newsreader Variable', 'Charter', 'Georgia', serif;
+  --font-mono: 'JetBrains Mono Variable', 'Fira Code', monospace;
 
-  /* 1. Inter: Para la interfaz (menús, botones) */
-  --font-sans: 'Inter Variable', 'Inter', system-ui, sans-serif;
-
-  /* 2. Newsreader o Charter: Para el cuerpo de la noticia (Lectura larga) */
-  --font-serif: 'Newsreader', 'Charter', 'Georgia', serif;
-
-  /* 3. JetBrains Mono: Para metadatos (fechas, etiquetas, código) */
-  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
-
-  --radius-rss: 6px;
-  --shadow-glow: 0 0 15px rgba(255, 85, 0, 0.3);
+  --radius-rss: 8px;
+  --shadow-glow: 0 0 20px rgba(255, 85, 0, 0.2);
 }
 
 /* 3. UTILIDADES ESPECIALES */
@@ -73,7 +83,7 @@
     position: fixed;
     inset: 0;
     z-index: 0;
-    opacity: 0.035; /* El grano es sutil */
+    opacity: 0.04;
     pointer-events: none;
     background-image: var(--bg-grain);
     mix-blend-mode: overlay;
@@ -81,5 +91,9 @@
 }
 
 @utility rss-card {
-  @apply border-b border-border py-4 px-2 transition-all duration-200 hover:bg-bg-secondary relative z-10;
+  @apply border-b border-border py-6 px-4 transition-all duration-300 hover:bg-bg-secondary relative z-10;
+}
+
+@utility glass-panel {
+  @apply bg-white/10 backdrop-blur-md border border-white/20 shadow-lg;
 }
