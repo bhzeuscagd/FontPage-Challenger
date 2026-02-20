@@ -37,11 +37,16 @@ export const GET: APIRoute = async ({ request }) => {
         custom_title,
         is_favorite,
         feed_id,
+        category_id,
         feeds (
           id,
           url,
           title,
           site_url
+        ),
+        categories (
+          id,
+          name
         )
       `)
       .eq('user_id', user.id);

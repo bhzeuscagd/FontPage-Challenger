@@ -1,0 +1,463 @@
+---
+import AppLayout from "../layouts/AppLayout.astro";
+import Icon from "../components/Icon.astro";
+---
+
+<AppLayout title="Settings - Frontpage">
+    <div class="mt-25 pl-10">
+        <h1 class="text-6xl font-serif text-text-primary">Settings</h1>
+    </div>
+
+    <div class="flex items-center gap-6 pb-4 pl-10">
+        <span class="text-xs font-mono uppercase text-text-secondary opacity-60"
+            >Account & Data</span
+        >
+    </div>
+
+    <div class="h-[3px] bg-text-primary mb-0"></div>
+
+    <div class="max-w-3xl mx-auto p-10 space-y-12">
+        <!-- Categories Section -->
+        <section>
+            <div class="flex items-center justify-between mb-6">
+                <div>
+                    <h2 class="text-2xl font-serif font-bold text-text-primary">
+                        Categories
+                    </h2>
+                    <p class="text-sm text-text-secondary opacity-60 mt-1">
+                        Organize your feeds into groups
+                    </p>
+                </div>
+            </div>
+
+            <div class="flex gap-3 mb-4">
+                <input
+                    id="new-cat-input"
+                    type="text"
+                    placeholder="New category name..."
+                    class="flex-1 bg-bg-secondary border border-text-primary/10 px-4 py-2 text-sm text-text-primary placeholder:text-text-secondary/40 focus:outline-none focus:border-text-primary/30 transition-colors"
+                />
+                <button
+                    id="add-cat-btn"
+                    class="px-6 py-2 bg-text-primary text-bg-primary text-sm font-medium hover:opacity-90 transition-opacity"
+                >
+                    Add
+                </button>
+            </div>
+
+            <div id="categories-list" class="space-y-1">
+                <div
+                    class="text-sm text-text-secondary opacity-40 py-4 text-center font-mono"
+                >
+                    Loading categories...
+                </div>
+            </div>
+
+            <!-- Assign feed to category -->
+            <div class="mt-6 pt-6 border-t border-text-primary/10">
+                <h3
+                    class="text-sm font-mono uppercase tracking-widest text-text-secondary opacity-50 mb-4"
+                >
+                    Assign Feeds to Categories
+                </h3>
+                <div id="feed-assign-list" class="space-y-2">
+                    <div
+                        class="text-sm text-text-secondary opacity-40 py-2 font-mono"
+                    >
+                        Loading feeds...
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="h-[2px] bg-text-primary/10"></div>
+
+        <!-- OPML Section -->
+        <section>
+            <div class="flex items-center justify-between mb-6">
+                <div>
+                    <h2 class="text-2xl font-serif font-bold text-text-primary">
+                        Import / Export
+                    </h2>
+                    <p class="text-sm text-text-secondary opacity-60 mt-1">
+                        Migrate your subscriptions via OPML
+                    </p>
+                </div>
+            </div>
+
+            <div class="flex flex-col gap-4">
+                <!-- Export -->
+                <div
+                    class="flex items-center justify-between p-4 bg-bg-secondary border border-text-primary/10"
+                >
+                    <div>
+                        <h3 class="text-sm font-bold text-text-primary">
+                            Export OPML
+                        </h3>
+                        <p
+                            class="text-xs text-text-secondary opacity-60 mt-0.5"
+                        >
+                            Download all your subscriptions as an OPML file
+                        </p>
+                    </div>
+                    <button
+                        id="export-opml-btn"
+                        class="px-5 py-2 bg-text-primary text-bg-primary text-sm font-medium hover:opacity-90 transition-opacity flex items-center gap-2"
+                    >
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="14"
+                            height="14"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            ><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"
+                            ></path><polyline points="7 10 12 15 17 10"
+                            ></polyline><line x1="12" x2="12" y1="15" y2="3"
+                            ></line></svg
+                        >
+                        Export
+                    </button>
+                </div>
+
+                <!-- Import -->
+                <div
+                    class="flex items-center justify-between p-4 bg-bg-secondary border border-text-primary/10"
+                >
+                    <div>
+                        <h3 class="text-sm font-bold text-text-primary">
+                            Import OPML
+                        </h3>
+                        <p
+                            class="text-xs text-text-secondary opacity-60 mt-0.5"
+                        >
+                            Add feeds from another reader by uploading an OPML
+                            file
+                        </p>
+                    </div>
+                    <label
+                        class="px-5 py-2 bg-text-primary text-bg-primary text-sm font-medium hover:opacity-90 transition-opacity flex items-center gap-2 cursor-pointer"
+                    >
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="14"
+                            height="14"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            ><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"
+                            ></path><polyline points="17 8 12 3 7 8"
+                            ></polyline><line x1="12" x2="12" y1="3" y2="15"
+                            ></line></svg
+                        >
+                        Import
+                        <input
+                            type="file"
+                            accept=".opml,.xml"
+                            id="import-opml-input"
+                            class="hidden"
+                        />
+                    </label>
+                </div>
+
+                <div
+                    id="import-status"
+                    class="hidden p-4 bg-bg-secondary border border-text-primary/10 text-sm"
+                >
+                </div>
+            </div>
+        </section>
+
+        <div class="h-[2px] bg-text-primary/10"></div>
+
+        <!-- Account Section -->
+        <section>
+            <h2 class="text-2xl font-serif font-bold text-text-primary mb-6">
+                Account
+            </h2>
+            <button
+                id="logout-btn"
+                class="px-6 py-2 border-[2px] border-red-500 text-red-500 text-sm font-medium hover:bg-red-500 hover:text-white transition-all"
+            >
+                Sign Out
+            </button>
+        </section>
+    </div>
+</AppLayout>
+
+<script>
+    import { supabase } from "../lib/supabase";
+
+    let currentSession: any = null;
+    let categories: any[] = [];
+    let subscriptions: any[] = [];
+
+    const catInput = document.getElementById(
+        "new-cat-input",
+    ) as HTMLInputElement;
+    const addCatBtn = document.getElementById("add-cat-btn");
+    const catList = document.getElementById("categories-list");
+    const feedAssignList = document.getElementById("feed-assign-list");
+    const exportBtn = document.getElementById("export-opml-btn");
+    const importInput = document.getElementById(
+        "import-opml-input",
+    ) as HTMLInputElement;
+    const importStatus = document.getElementById("import-status");
+    const logoutBtn = document.getElementById("logout-btn");
+
+    async function init() {
+        const {
+            data: { session },
+        } = await supabase.auth.getSession();
+        if (!session) {
+            window.location.href = "/login";
+            return;
+        }
+        currentSession = session;
+
+        await Promise.all([loadCategories(), loadSubscriptions()]);
+        renderCategories();
+        renderFeedAssign();
+    }
+
+    async function loadCategories() {
+        try {
+            const res = await fetch("/api/categories", {
+                headers: {
+                    Authorization: `Bearer ${currentSession.access_token}`,
+                },
+            });
+            categories = await res.json();
+            if (!Array.isArray(categories)) categories = [];
+        } catch {
+            categories = [];
+        }
+    }
+
+    async function loadSubscriptions() {
+        try {
+            const res = await fetch("/api/feeds/list", {
+                headers: {
+                    Authorization: `Bearer ${currentSession.access_token}`,
+                },
+            });
+            subscriptions = await res.json();
+            if (!Array.isArray(subscriptions)) subscriptions = [];
+        } catch {
+            subscriptions = [];
+        }
+    }
+
+    function renderCategories() {
+        if (!catList) return;
+
+        if (categories.length === 0) {
+            catList.innerHTML = `<div class="text-sm text-text-secondary opacity-40 py-4 text-center">No categories yet. Create one above.</div>`;
+            return;
+        }
+
+        catList.innerHTML = categories
+            .map(
+                (cat) => `
+            <div class="flex items-center justify-between p-3 bg-bg-secondary border border-text-primary/5 group hover:border-text-primary/15 transition-colors" data-cat-id="${cat.id}">
+                <div class="flex items-center gap-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-text-secondary opacity-40">
+                        <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+                    </svg>
+                    <span class="text-sm font-medium text-text-primary">${cat.name}</span>
+                    <span class="text-[10px] font-mono text-text-secondary/40">${subscriptions.filter((s) => s.category_id === cat.id).length} feeds</span>
+                </div>
+                <button class="delete-cat-btn opacity-0 group-hover:opacity-100 text-red-500/60 hover:text-red-500 transition-all p-1" data-id="${cat.id}" title="Delete category">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                </button>
+            </div>
+        `,
+            )
+            .join("");
+
+        catList.querySelectorAll(".delete-cat-btn").forEach((btn) => {
+            btn.addEventListener("click", async () => {
+                const id = (btn as HTMLElement).dataset.id;
+                if (
+                    !confirm(
+                        "Delete this category? Feeds will become uncategorized.",
+                    )
+                )
+                    return;
+
+                await fetch("/api/categories", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${currentSession.access_token}`,
+                    },
+                    body: JSON.stringify({ action: "delete", id }),
+                });
+                await loadCategories();
+                await loadSubscriptions();
+                renderCategories();
+                renderFeedAssign();
+                window.dispatchEvent(new CustomEvent("feed-added"));
+            });
+        });
+    }
+
+    function renderFeedAssign() {
+        if (!feedAssignList) return;
+
+        if (subscriptions.length === 0) {
+            feedAssignList.innerHTML = `<div class="text-sm text-text-secondary opacity-40 py-2">No subscriptions yet.</div>`;
+            return;
+        }
+
+        feedAssignList.innerHTML = subscriptions
+            .map((sub) => {
+                const title = sub.custom_title || sub.feeds.title;
+                const currentCatId = sub.category_id || "";
+
+                const options = categories
+                    .map(
+                        (cat) =>
+                            `<option value="${cat.id}" ${cat.id === currentCatId ? "selected" : ""}>${cat.name}</option>`,
+                    )
+                    .join("");
+
+                return `
+                <div class="flex items-center justify-between p-2 hover:bg-bg-secondary transition-colors" data-sub-id="${sub.id}">
+                    <span class="text-sm text-text-primary truncate flex-1 mr-4">${title}</span>
+                    <select class="cat-select bg-bg-secondary border border-text-primary/10 px-3 py-1 text-xs text-text-primary focus:outline-none focus:border-text-primary/30 min-w-[140px]" data-sub-id="${sub.id}">
+                        <option value="">None</option>
+                        ${options}
+                    </select>
+                </div>
+            `;
+            })
+            .join("");
+
+        feedAssignList.querySelectorAll(".cat-select").forEach((select) => {
+            select.addEventListener("change", async () => {
+                const subId = (select as HTMLElement).dataset.subId;
+                const catId = (select as HTMLSelectElement).value || null;
+
+                await fetch("/api/categories", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${currentSession.access_token}`,
+                    },
+                    body: JSON.stringify({
+                        action: "assign",
+                        subscriptionId: subId,
+                        categoryId: catId,
+                    }),
+                });
+                await loadSubscriptions();
+                window.dispatchEvent(new CustomEvent("feed-added"));
+            });
+        });
+    }
+
+    // --- Add Category ---
+    addCatBtn?.addEventListener("click", async () => {
+        const name = catInput?.value?.trim();
+        if (!name) return;
+
+        const res = await fetch("/api/categories", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${currentSession.access_token}`,
+            },
+            body: JSON.stringify({ action: "create", name }),
+        });
+
+        if (res.ok) {
+            catInput.value = "";
+            await loadCategories();
+            renderCategories();
+            renderFeedAssign();
+        } else {
+            const err = await res.json();
+            alert(err.error || "Failed to create category");
+        }
+    });
+
+    catInput?.addEventListener("keypress", (e) => {
+        if (e.key === "Enter") addCatBtn?.click();
+    });
+
+    // --- OPML Export ---
+    exportBtn?.addEventListener("click", async () => {
+        try {
+            const res = await fetch("/api/opml", {
+                headers: {
+                    Authorization: `Bearer ${currentSession.access_token}`,
+                },
+            });
+            const blob = await res.blob();
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "frontpage-subscriptions.opml";
+            a.click();
+            URL.revokeObjectURL(url);
+        } catch (err) {
+            alert("Export failed");
+        }
+    });
+
+    // --- OPML Import ---
+    importInput?.addEventListener("change", async (e) => {
+        const file = (e.target as HTMLInputElement).files?.[0];
+        if (!file) return;
+
+        if (importStatus) {
+            importStatus.classList.remove("hidden");
+            importStatus.innerHTML = `<div class="flex items-center gap-2"><div class="animate-spin rounded-full h-4 w-4 border-b-2 border-text-primary"></div> Importing ${file.name}...</div>`;
+        }
+
+        try {
+            const text = await file.text();
+            const res = await fetch("/api/opml", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${currentSession.access_token}`,
+                },
+                body: JSON.stringify({ opmlContent: text }),
+            });
+            const result = await res.json();
+
+            if (importStatus) {
+                importStatus.innerHTML = `
+                    <div class="text-text-primary font-medium mb-1">Import Complete</div>
+                    <div class="text-xs text-text-secondary space-y-0.5">
+                        <div>✅ Imported: ${result.imported || 0} feeds</div>
+                        <div>⏩ Skipped (dupes): ${result.skipped || 0}</div>
+                        ${result.errors?.length > 0 ? `<div class="text-red-500/80 mt-1">⚠️ ${result.errors.length} errors</div>` : ""}
+                    </div>
+                `;
+            }
+
+            // Refresh data
+            await Promise.all([loadCategories(), loadSubscriptions()]);
+            renderCategories();
+            renderFeedAssign();
+            window.dispatchEvent(new CustomEvent("feed-added"));
+        } catch (err) {
+            if (importStatus) {
+                importStatus.innerHTML = `<div class="text-red-500">Import failed. Please check the file format.</div>`;
+            }
+        }
+    });
+
+    // --- Logout ---
+    logoutBtn?.addEventListener("click", async () => {
+        await supabase.auth.signOut();
+        window.location.href = "/login";
+    });
+
+    init();
+</script>

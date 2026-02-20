@@ -1,0 +1,380 @@
+---
+import AppLayout from "../layouts/AppLayout.astro";
+import Icon from "../components/Icon.astro";
+---
+
+<AppLayout title="Search - Frontpage">
+    <div class="mt-25 pl-10">
+        <h1 class="text-6xl font-serif text-text-primary">Search</h1>
+    </div>
+
+    <div class="flex items-center gap-6 pb-4 pl-10 pr-10">
+        <div class="flex-1 relative">
+            <input
+                id="search-input"
+                type="text"
+                placeholder="Search across all your feeds..."
+                class="w-full bg-transparent border-none text-xl text-text-primary placeholder:text-text-secondary/30 focus:outline-none font-medium py-1"
+                autofocus
+            />
+        </div>
+        <div
+            id="search-status"
+            class="text-xs font-mono text-text-secondary opacity-50"
+        >
+        </div>
+    </div>
+
+    <div class="h-[3px] bg-text-primary mb-0"></div>
+
+    <div
+        id="news-grid"
+        class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 min-h-[400px] view-cards"
+    >
+        <div
+            class="col-span-full flex flex-col items-center justify-center p-32 text-center"
+        >
+            <div
+                class="w-16 h-16 bg-text-primary/5 rounded-full flex items-center justify-center mb-6 opacity-40"
+            >
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="32"
+                    height="32"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                >
+                    <circle cx="11" cy="11" r="8"></circle><path
+                        d="m21 21-4.3-4.3"></path>
+                </svg>
+            </div>
+            <h3 class="text-xl font-serif font-bold mb-2">
+                Search your library
+            </h3>
+            <p class="text-text-secondary opacity-60 max-w-xs mx-auto text-sm">
+                Type at least 2 characters to search across all your subscribed
+                feeds.
+            </p>
+        </div>
+    </div>
+</AppLayout>
+
+<script>
+    import { supabase } from "../lib/supabase";
+
+    const searchInput = document.getElementById(
+        "search-input",
+    ) as HTMLInputElement;
+    const newsGrid = document.getElementById("news-grid");
+    const searchStatus = document.getElementById("search-status");
+
+    let currentSession: any = null;
+    let debounceTimer: any = null;
+    let userBookmarks: Set<string> = new Set();
+
+    async function init() {
+        const {
+            data: { session },
+        } = await supabase.auth.getSession();
+        if (!session) {
+            window.location.href = "/login";
+            return;
+        }
+        currentSession = session;
+
+        // Load bookmarks in background
+        loadUserBookmarks().catch(() => {});
+    }
+
+    async function loadUserBookmarks() {
+        try {
+            const res = await fetch("/api/bookmarks/list", {
+                headers: {
+                    Authorization: `Bearer ${currentSession.access_token}`,
+                },
+            });
+            const data = await res.json();
+            if (Array.isArray(data)) {
+                userBookmarks = new Set(data.map((item: any) => item.guid));
+            }
+        } catch {
+            /* ignore */
+        }
+    }
+
+    searchInput?.addEventListener("input", () => {
+        clearTimeout(debounceTimer);
+        const q = searchInput.value.trim();
+
+        if (q.length < 2) {
+            if (searchStatus) searchStatus.textContent = "";
+            return;
+        }
+
+        if (searchStatus) searchStatus.textContent = "Searching...";
+        debounceTimer = setTimeout(() => doSearch(q), 400);
+    });
+
+    async function doSearch(query: string) {
+        if (!newsGrid) return;
+
+        newsGrid.innerHTML = `
+            <div class="col-span-full flex items-center justify-center p-20 text-text-secondary opacity-50">
+                <div class="flex flex-col items-center gap-4">
+                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-text-primary"></div>
+                    <p class="font-mono text-sm uppercase tracking-widest">Searching "${query}"...</p>
+                </div>
+            </div>
+        `;
+
+        try {
+            const res = await fetch(
+                `/api/feeds/search?q=${encodeURIComponent(query)}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${currentSession.access_token}`,
+                    },
+                },
+            );
+            const data = await res.json();
+
+            if (searchStatus) {
+                searchStatus.textContent = `${data.count || 0} results`;
+            }
+
+            if (!data.items || data.items.length === 0) {
+                newsGrid.innerHTML = `
+                    <div class="col-span-full flex flex-col items-center justify-center p-20 text-center">
+                        <h3 class="text-lg font-serif font-bold mb-2 text-text-primary">No results for "${query}"</h3>
+                        <p class="text-text-secondary opacity-60 text-sm">Try different keywords or check your spelling.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            renderResults(data.items);
+        } catch (err) {
+            newsGrid.innerHTML = `<div class="col-span-full p-12 text-center text-red-500">Search failed</div>`;
+            if (searchStatus) searchStatus.textContent = "Error";
+        }
+    }
+
+    function renderResults(items: any[]) {
+        if (!newsGrid) return;
+
+        newsGrid.innerHTML = items
+            .map((item: any) => {
+                const isBookmarked = userBookmarks.has(item.guid);
+                const feedUrl = item.feedUrl || "";
+
+                return `
+                <div class="news-card group flex flex-col no-underline border-b-[3px] border-text-primary border-r-[3px] nth-[3n]:border-r-0 relative" data-guid="${item.guid}">
+                    <a href="/preview?url=${encodeURIComponent(item.link)}&feedUrl=${encodeURIComponent(feedUrl)}" class="flex flex-col flex-1 no-underline">
+                        <div class="card-image-container p-4 pb-0">
+                            <div class="aspect-16/10 overflow-hidden bg-bg-secondary rounded-sm">
+                                <img 
+                                    src="${item.imageUrl || `https://placehold.co/600x375/cec7c0/2e2522?text=${encodeURIComponent(item.title)}&font=serif`}" 
+                                    alt="${item.title}" 
+                                    class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                    loading="lazy"
+                                />
+                            </div>
+                        </div>
+                        <div class="p-4 pt-3 flex flex-col flex-1">
+                            <h2 class="card-title text-lg font-bold text-text-primary leading-snug mb-4 group-hover:opacity-70 transition-opacity line-clamp-3">
+                                ${item.title}
+                            </h2>
+                            <div class="card-meta flex items-center justify-between text-sm text-text-secondary mt-auto">
+                                <div class="flex items-center gap-2">
+                                    <span class="font-medium text-text-primary text-xs">${item.feedTitle || "Feed"}</span>
+                                    <span class="text-xs">▪</span>
+                                    <time class="text-xs">${new Date(item.pubDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</time>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                    
+                    <!-- Action buttons -->
+                    <div class="card-actions flex flex-col absolute top-4 right-4 gap-1 z-10">
+                        <a href="${item.link}" target="_blank" rel="noopener" class="action-btn w-7 h-7 flex items-center justify-center rounded-full border border-text-secondary/30 text-text-secondary hover:border-text-primary hover:text-text-primary transition-colors text-xs bg-bg-primary/80 backdrop-blur-sm no-underline">↗</a>
+                        <button 
+                            class="bookmark-btn action-btn w-7 h-7 flex items-center justify-center rounded-full bg-bg-primary/80 backdrop-blur-sm border border-text-primary/10 text-text-secondary hover:text-text-primary hover:border-text-primary/30 transition-all"
+                            title="${isBookmarked ? "Remove bookmark" : "Bookmark for later"}"
+                            data-item='${JSON.stringify(item).replace(/'/g, "&apos;")}'
+                            data-feed-url="${feedUrl}"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="${isBookmarked ? "currentColor" : "none"}" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            `;
+            })
+            .join("");
+
+        // Bookmark event listeners
+        document.querySelectorAll(".bookmark-btn").forEach((btn) => {
+            btn.addEventListener("click", async (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+
+                const b = e.currentTarget as HTMLButtonElement;
+                const itemData = JSON.parse(b.dataset.item || "{}");
+                const feedUrl = b.dataset.feedUrl;
+
+                const svg = b.querySelector("svg");
+                const isCurrentlySaved = svg?.getAttribute("fill") !== "none";
+                if (svg)
+                    svg.setAttribute(
+                        "fill",
+                        isCurrentlySaved ? "none" : "currentColor",
+                    );
+
+                try {
+                    const res = await fetch("/api/bookmarks/toggle", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${currentSession.access_token}`,
+                        },
+                        body: JSON.stringify({ item: itemData, feedUrl }),
+                    });
+                    const result = await res.json();
+
+                    if (result.is_saved) {
+                        userBookmarks.add(itemData.guid);
+                        if (svg) svg.setAttribute("fill", "currentColor");
+                    } else {
+                        userBookmarks.delete(itemData.guid);
+                        if (svg) svg.setAttribute("fill", "none");
+                    }
+                } catch {
+                    if (svg)
+                        svg.setAttribute(
+                            "fill",
+                            isCurrentlySaved ? "currentColor" : "none",
+                        );
+                }
+            });
+        });
+    }
+
+    init();
+</script>
+
+<style is:global>
+    /* View Mode: List */
+    .view-list {
+        display: flex !important;
+        flex-direction: column !important;
+        grid-template-columns: none !important;
+    }
+    .view-list .news-card {
+        flex-direction: row !important;
+        min-height: 100px;
+        max-height: 120px;
+        border-right: none !important;
+        overflow: hidden;
+    }
+    .view-list .news-card > a {
+        flex-direction: row !important;
+        flex: 1;
+        min-width: 0;
+        overflow: hidden;
+    }
+    .view-list .card-image-container {
+        width: 160px;
+        min-width: 160px;
+        max-width: 160px;
+        padding: 10px !important;
+        flex-shrink: 0;
+    }
+    .view-list .card-image-container > div {
+        aspect-ratio: auto !important;
+        height: 100%;
+    }
+    .view-list .news-card > a > div:last-child {
+        flex: 1;
+        min-width: 0;
+        padding: 10px 12px !important;
+        overflow: hidden;
+    }
+    .view-list .card-title {
+        font-size: 0.95rem;
+        margin-bottom: 4px !important;
+        -webkit-line-clamp: 2;
+    }
+    /* Actions in list: flex row */
+    .view-list .card-actions {
+        position: relative !important;
+        top: auto !important;
+        right: auto !important;
+        flex-direction: row !important;
+        align-items: center;
+        align-self: center;
+        gap: 10px;
+        padding-right: 12px;
+        margin-left: 12px;
+        flex-shrink: 0;
+    }
+
+    /* View Mode: Compact */
+    .view-compact {
+        display: flex !important;
+        flex-direction: column !important;
+        grid-template-columns: none !important;
+    }
+    .view-compact .news-card {
+        flex-direction: row !important;
+        align-items: center;
+        border-right: none !important;
+        padding: 6px 16px;
+        min-height: auto;
+    }
+    .view-compact .news-card > a {
+        flex-direction: row !important;
+        flex: 1;
+        min-width: 0;
+        align-items: center;
+        gap: 12px;
+    }
+    .view-compact .card-image-container {
+        display: none !important;
+    }
+    .view-compact .news-card > a > div:last-child {
+        flex: 1;
+        min-width: 0;
+        padding: 4px 0 !important;
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center;
+        gap: 12px;
+    }
+    .view-compact .card-title {
+        font-size: 0.875rem;
+        margin-bottom: 0 !important;
+        flex: 1;
+        min-width: 0;
+        -webkit-line-clamp: 1;
+    }
+    .view-compact .card-meta {
+        flex-shrink: 0;
+        margin-top: 0 !important;
+    }
+    /* Actions in compact: flex row */
+    .view-compact .card-actions {
+        position: relative !important;
+        top: auto !important;
+        right: auto !important;
+        flex-direction: row !important;
+        align-items: center;
+        align-self: center;
+        gap: 10px;
+        padding-right: 8px;
+        margin-left: 16px;
+        flex-shrink: 0;
+    }
+</style>

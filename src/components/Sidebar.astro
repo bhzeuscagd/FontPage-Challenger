@@ -3,6 +3,7 @@ import Icon from "./Icon.astro";
 
 const menuItems = [
   { label: "Today", icon: "Calendar", href: "/dashboard" },
+  { label: "Search", icon: "Search", href: "/search" },
   { label: "Read Later", icon: "Bookmark", href: "/bookmarks" },
   { label: "My Feeds", icon: "Rss", href: "/feeds" },
   { label: "Explore", icon: "Globe", href: "/explore" },
@@ -251,6 +252,23 @@ const currentPath = Astro.url.pathname;
     }
   }
 
+  let categories: any[] = [];
+
+  async function loadCategories() {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    if (!session) return;
+    try {
+      const res = await fetch("/api/categories", {
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+      categories = await res.json();
+    } catch {
+      /* ignore */
+    }
+  }
+
   function renderSidebarSubs() {
     if (!subsList) return;
 
@@ -265,118 +283,183 @@ const currentPath = Astro.url.pathname;
 
     subsList.innerHTML = "";
 
+    // Group by category
+    const grouped: Record<string, any[]> = {};
+    const uncategorized: any[] = [];
+
     currentSubscriptions.forEach((sub) => {
-      const li = document.createElement("li");
-      li.className =
-        "group relative flex items-center gap-2 px-3 py-1 rounded-md hover:bg-text-primary/10 transition-colors cursor-pointer text-text-secondary hover:text-text-primary";
-
-      const title = sub.custom_title || sub.feeds.title;
-      const unreadCount = sub.unreadCount || 0;
-
-      // Favicon handling
-      const siteUrl = sub.feeds.site_url || sub.feeds.url;
-      let domain = "";
-      try {
-        domain = new URL(siteUrl).hostname;
-      } catch (e) {
-        domain = siteUrl;
+      const catName = sub.categories?.name;
+      if (catName) {
+        if (!grouped[catName]) grouped[catName] = [];
+        grouped[catName].push(sub);
+      } else {
+        uncategorized.push(sub);
       }
-      const faviconUrl = `https://www.google.com/s2/favicons?sz=64&domain=${domain}`;
+    });
 
-      li.innerHTML = `
-        <div class="shrink-0 w-4 h-4 flex items-center justify-center overflow-hidden rounded-[2px] bg-text-primary/5">
-          <img src="${faviconUrl}" class="w-full h-full object-contain" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
-          <span class="hidden w-full h-full items-center justify-center text-[10px] font-bold opacity-40 bg-text-primary/10">
-            ${sub.feeds.title?.[0] || "R"}
-          </span>
-        </div>
-        <span class="sidebar-label flex-1 truncate text-xs transition-all duration-300">
-          ${title}
-        </span>
-        <div class="sidebar-label flex items-center gap-1.5 shrink-0 transition-opacity">
-          ${
-            unreadCount > 0
-              ? `
-            <span class="bg-text-secondary/10 text-text-secondary text-[9px] px-1 rounded-full min-w-[14px] text-center font-bold unread-badge">
-              ${unreadCount}
-            </span>
-          `
-              : ""
-          }
-          <button class="fav-toggle p-0.5 rounded hover:bg-text-primary/20 transition-all ${sub.is_favorite ? "text-yellow-500 opacity-100" : "opacity-0 group-hover:opacity-100"}" data-id="${sub.id}" data-fav="${sub.is_favorite}">
-            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="${sub.is_favorite ? "currentColor" : "none"}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
-          </button>
-        </div>
+    // Render categorized feeds
+    const collapsedCats = JSON.parse(
+      localStorage.getItem("collapsed-cats") || "[]",
+    );
+
+    Object.entries(grouped)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .forEach(([catName, subs]) => {
+        const isCollapsed = collapsedCats.includes(catName);
+
+        // Category header
+        const catHeader = document.createElement("li");
+        catHeader.className =
+          "flex items-center gap-2 px-3 py-1 cursor-pointer group/cat sidebar-label";
+        catHeader.innerHTML = `
+        <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="shrink-0 text-text-secondary/40 transition-transform ${isCollapsed ? "" : "rotate-90"}">
+          <path d="m9 18 6-6-6-6"/>
+        </svg>
+        <span class="text-[10px] font-mono uppercase tracking-widest text-text-secondary opacity-50 truncate flex-1">${catName}</span>
+        <span class="text-[9px] font-mono text-text-secondary/30">${subs.length}</span>
       `;
 
-      li.onclick = async (e) => {
-        if ((e.target as HTMLElement).closest(".fav-toggle")) return;
+        catHeader.addEventListener("click", () => {
+          const stored = JSON.parse(
+            localStorage.getItem("collapsed-cats") || "[]",
+          );
+          const idx = stored.indexOf(catName);
+          if (idx >= 0) stored.splice(idx, 1);
+          else stored.push(catName);
+          localStorage.setItem("collapsed-cats", JSON.stringify(stored));
+          renderSidebarSubs();
+        });
 
-        // UI optimismo: hide badge
-        const badge = li.querySelector(".unread-badge");
-        if (badge) badge.classList.add("hidden");
+        subsList.appendChild(catHeader);
 
-        window.dispatchEvent(
-          new CustomEvent("select-feed", {
-            detail: {
-              url: sub.feeds.url,
-              title,
-              id: sub.feed_id,
-              subscriptionId: sub.id,
-            },
-          }),
-        );
-
-        // Mark as read in backend
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
-        if (!session) return;
-        try {
-          fetch("/api/feeds/mark-read", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${session.access_token}`,
-            },
-            body: JSON.stringify({ subscriptionId: sub.id }),
-          });
-        } catch (err) {
-          console.error(err);
-        }
-      };
-
-      // Fav toggle logic
-      const toggle = li.querySelector(".fav-toggle");
-      toggle?.addEventListener("click", async (e) => {
-        e.stopPropagation();
-        const subId = (toggle as HTMLElement).dataset.id;
-        const isFav = (toggle as HTMLElement).dataset.fav === "true";
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
-        if (!session) return;
-
-        try {
-          const res = await fetch("/api/feeds/favorite", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${session.access_token}`,
-            },
-            body: JSON.stringify({ subscriptionId: subId, isFavorite: !isFav }),
-          });
-          if (res.ok) {
-            loadSidebarSubs();
-            window.dispatchEvent(new CustomEvent("feed-favorite-toggled"));
-          }
-        } catch (err) {
-          console.error(err);
+        if (!isCollapsed) {
+          subs.forEach((sub) => renderSubItem(sub));
         }
       });
 
-      subsList.appendChild(li);
+    // Render uncategorized feeds
+    if (uncategorized.length > 0 && Object.keys(grouped).length > 0) {
+      const divider = document.createElement("li");
+      divider.className = "px-3 py-1 sidebar-label";
+      divider.innerHTML = `<span class="text-[10px] font-mono uppercase tracking-widest text-text-secondary/30">Uncategorized</span>`;
+      subsList.appendChild(divider);
+    }
+    uncategorized.forEach((sub) => renderSubItem(sub));
+  }
+
+  function renderSubItem(sub: any) {
+    if (!subsList) return;
+
+    const li = document.createElement("li");
+    li.className =
+      "group relative flex items-center gap-2 px-3 py-1 rounded-md hover:bg-text-primary/10 transition-colors cursor-pointer text-text-secondary hover:text-text-primary";
+
+    const title = sub.custom_title || sub.feeds.title;
+    const unreadCount = sub.unreadCount || 0;
+
+    // Favicon handling
+    const siteUrl = sub.feeds.site_url || sub.feeds.url;
+    let domain = "";
+    try {
+      domain = new URL(siteUrl).hostname;
+    } catch (e) {
+      domain = siteUrl;
+    }
+    const faviconUrl = `https://www.google.com/s2/favicons?sz=64&domain=${domain}`;
+
+    li.innerHTML = `
+      <div class="shrink-0 w-4 h-4 flex items-center justify-center overflow-hidden rounded-[2px] bg-text-primary/5">
+        <img src="${faviconUrl}" class="w-full h-full object-contain" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+        <span class="hidden w-full h-full items-center justify-center text-[10px] font-bold opacity-40 bg-text-primary/10">
+          ${sub.feeds.title?.[0] || "R"}
+        </span>
+      </div>
+      <span class="sidebar-label flex-1 truncate text-xs transition-all duration-300">
+        ${title}
+      </span>
+      <div class="sidebar-label flex items-center gap-1.5 shrink-0 transition-opacity">
+        ${
+          unreadCount > 0
+            ? `
+          <span class="bg-text-secondary/10 text-text-secondary text-[9px] px-1 rounded-full min-w-[14px] text-center font-bold unread-badge">
+            ${unreadCount}
+          </span>
+        `
+            : ""
+        }
+        <button class="fav-toggle p-0.5 rounded hover:bg-text-primary/20 transition-all ${sub.is_favorite ? "text-yellow-500 opacity-100" : "opacity-0 group-hover:opacity-100"}" data-id="${sub.id}" data-fav="${sub.is_favorite}">
+          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="${sub.is_favorite ? "currentColor" : "none"}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+        </button>
+      </div>
+    `;
+
+    li.onclick = async (e) => {
+      if ((e.target as HTMLElement).closest(".fav-toggle")) return;
+
+      // UI optimismo: hide badge
+      const badge = li.querySelector(".unread-badge");
+      if (badge) badge.classList.add("hidden");
+
+      window.dispatchEvent(
+        new CustomEvent("select-feed", {
+          detail: {
+            url: sub.feeds.url,
+            title,
+            id: sub.feed_id,
+            subscriptionId: sub.id,
+          },
+        }),
+      );
+
+      // Mark as read in backend
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (!session) return;
+      try {
+        fetch("/api/feeds/mark-read", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify({ subscriptionId: sub.id }),
+        });
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    // Fav toggle logic
+    const toggle = li.querySelector(".fav-toggle");
+    toggle?.addEventListener("click", async (e) => {
+      e.stopPropagation();
+      const subId = (toggle as HTMLElement).dataset.id;
+      const isFav = (toggle as HTMLElement).dataset.fav === "true";
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (!session) return;
+
+      try {
+        const res = await fetch("/api/feeds/favorite", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify({ subscriptionId: subId, isFavorite: !isFav }),
+        });
+        if (res.ok) {
+          loadSidebarSubs();
+          window.dispatchEvent(new CustomEvent("feed-favorite-toggled"));
+        }
+      } catch (err) {
+        console.error(err);
+      }
     });
+
+    subsList.appendChild(li);
   }
 
   // Subscribe to auth changes

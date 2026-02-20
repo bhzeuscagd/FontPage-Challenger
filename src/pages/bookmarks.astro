@@ -1,0 +1,593 @@
+---
+import AppLayout from "../layouts/AppLayout.astro";
+import Icon from "../components/Icon.astro";
+import FeedActionsMenu from "../components/FeedActionsMenu.astro";
+---
+
+<AppLayout title="Saved - Frontpage">
+    <div class="mt-25 pl-10">
+        <h1 class="text-6xl font-serif text-text-primary">Saved</h1>
+    </div>
+
+    <!-- Subscriptions filter tabs -->
+    <div class="flex items-center gap-6 pb-4 pl-10">
+        <div class="relative" id="subs-dropdown-wrapper">
+            <button
+                id="subs-dropdown-btn"
+                class="flex items-center gap-2 text-xs font-mono uppercase text-text-secondary opacity-60 hover:opacity-100 transition-opacity"
+            >
+                <span>Sources</span>
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                >
+                    <path d="m6 9 6 6 6-6"></path>
+                </svg>
+            </button>
+            <!-- Dropdown menu -->
+            <div
+                id="subs-dropdown-menu"
+                class="hidden absolute top-full left-0 mt-2 w-72 bg-bg-primary border-[3px] border-text-primary shadow-xl z-50 max-h-80 overflow-y-auto"
+            >
+                <div class="p-2 border-b border-text-primary/10">
+                    <span
+                        class="text-[10px] font-mono uppercase tracking-widest text-text-secondary opacity-50 px-2"
+                    >
+                        Saved Sources
+                    </span>
+                </div>
+                <div id="subs-dropdown-list" class="py-1">
+                    <!-- Items injected by JS -->
+                </div>
+            </div>
+        </div>
+
+        <div id="saved-tabs" class="flex items-center gap-6">
+            <button
+                class="tab-btn text-xl font-medium text-text-primary border-b-[3px] border-text-primary pb-1"
+                data-filter="all">All</button
+            >
+            <!-- Favorite source tabs will be injected here -->
+        </div>
+
+        <div class="ml-auto pr-10">
+            <FeedActionsMenu />
+        </div>
+    </div>
+
+    <!-- Thick horizontal line under tabs -->
+    <div class="h-[3px] bg-text-primary mb-0"></div>
+
+    <!-- News Grid -->
+    <div
+        id="news-grid"
+        class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 min-h-[400px] view-cards"
+    >
+        <div
+            class="col-span-full flex items-center justify-center p-20 text-text-secondary opacity-50"
+        >
+            <div class="flex flex-col items-center gap-4">
+                <div
+                    class="animate-spin rounded-full h-8 w-8 border-b-2 border-text-primary"
+                >
+                </div>
+                <p class="font-mono text-sm uppercase tracking-widest">
+                    Loading saved articles...
+                </p>
+            </div>
+        </div>
+    </div>
+</AppLayout>
+
+<script>
+    import { supabase } from "../lib/supabase";
+
+    const newsGrid = document.getElementById("news-grid");
+    const savedTabsContainer = document.getElementById("saved-tabs");
+    const dropdownBtn = document.getElementById("subs-dropdown-btn");
+    const dropdownMenu = document.getElementById("subs-dropdown-menu");
+    const dropdownList = document.getElementById("subs-dropdown-list");
+
+    let currentSession: any = null;
+    let bookmarks: any[] = [];
+    let activeFilter: string = "all";
+    let viewMode: string = "cards";
+    // Track which sources are "pinned" to tabs (stored in localStorage)
+    let pinnedSources: Set<string> = new Set();
+
+    function loadPinnedSources() {
+        try {
+            const stored = localStorage.getItem("saved-pinned-sources");
+            if (stored) pinnedSources = new Set(JSON.parse(stored));
+        } catch {
+            /* ignore */
+        }
+    }
+
+    function savePinnedSources() {
+        localStorage.setItem(
+            "saved-pinned-sources",
+            JSON.stringify([...pinnedSources]),
+        );
+    }
+
+    async function init() {
+        const {
+            data: { session },
+        } = await supabase.auth.getSession();
+        if (!session) {
+            window.location.href = "/login";
+            return;
+        }
+        currentSession = session;
+        loadPinnedSources();
+        await loadBookmarks();
+    }
+
+    async function loadBookmarks() {
+        if (!newsGrid) return;
+
+        try {
+            const response = await fetch("/api/bookmarks/list", {
+                headers: {
+                    Authorization: `Bearer ${currentSession.access_token}`,
+                },
+            });
+            bookmarks = await response.json();
+            if (!Array.isArray(bookmarks)) bookmarks = [];
+            buildSourceDropdown();
+            renderTabs();
+            renderCards();
+        } catch (err) {
+            console.error("Failed to load bookmarks", err);
+            newsGrid.innerHTML = `<div class="col-span-full p-12 text-center text-red-500">Failed to load bookmarks</div>`;
+        }
+    }
+
+    // --- SOURCES DROPDOWN ---
+
+    function getUniqueSources(): { feedUrl: string; feedTitle: string }[] {
+        const map = new Map<string, string>();
+        bookmarks.forEach((b) => {
+            if (b.feedUrl && !map.has(b.feedUrl)) {
+                map.set(b.feedUrl, b.feedTitle || "Unknown");
+            }
+        });
+        return Array.from(map.entries()).map(([feedUrl, feedTitle]) => ({
+            feedUrl,
+            feedTitle,
+        }));
+    }
+
+    function buildSourceDropdown() {
+        if (!dropdownList) return;
+        const sources = getUniqueSources();
+
+        if (sources.length === 0) {
+            dropdownList.innerHTML = `<div class="px-4 py-3 text-xs text-text-secondary opacity-50">No sources yet</div>`;
+            return;
+        }
+
+        dropdownList.innerHTML = sources
+            .map((src) => {
+                const isPinned = pinnedSources.has(src.feedUrl);
+                const count = bookmarks.filter(
+                    (b) => b.feedUrl === src.feedUrl,
+                ).length;
+                return `
+                <div class="flex items-center gap-2 px-3 py-2 hover:bg-text-primary/5 transition-colors cursor-pointer group" data-source-url="${src.feedUrl}">
+                    <button 
+                        class="pin-source-btn flex-shrink-0 w-5 h-5 flex items-center justify-center rounded-sm transition-colors ${isPinned ? "text-text-primary" : "text-text-secondary/30 group-hover:text-text-secondary/60"}"
+                        data-url="${src.feedUrl}"
+                        title="${isPinned ? "Unpin from tabs" : "Pin to tabs"}"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="${isPinned ? "currentColor" : "none"}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                        </svg>
+                    </button>
+                    <span class="source-label flex-1 text-sm font-medium text-text-primary truncate">${src.feedTitle}</span>
+                    <span class="text-[10px] font-mono text-text-secondary opacity-50">${count}</span>
+                </div>
+            `;
+            })
+            .join("");
+
+        // Pin/unpin star buttons
+        dropdownList.querySelectorAll(".pin-source-btn").forEach((btn) => {
+            btn.addEventListener("click", (e) => {
+                e.stopPropagation();
+                const url = (btn as HTMLElement).dataset.url!;
+                if (pinnedSources.has(url)) {
+                    pinnedSources.delete(url);
+                } else {
+                    pinnedSources.add(url);
+                }
+                savePinnedSources();
+                buildSourceDropdown();
+                renderTabs();
+            });
+        });
+
+        // Click on source row = filter by that source
+        dropdownList.querySelectorAll("[data-source-url]").forEach((row) => {
+            row.addEventListener("click", (e) => {
+                // Don't trigger if they clicked the star
+                if ((e.target as HTMLElement).closest(".pin-source-btn"))
+                    return;
+                const url = (row as HTMLElement).dataset.sourceUrl!;
+                activeFilter = url;
+                updateTabsUI();
+                renderCards();
+                closeDropdown();
+            });
+        });
+    }
+
+    // --- TABS (Pinned sources) ---
+
+    function renderTabs() {
+        if (!savedTabsContainer) return;
+
+        // Keep the "All" button
+        const allBtn = savedTabsContainer.querySelector('[data-filter="all"]');
+        savedTabsContainer.innerHTML = "";
+        if (allBtn) {
+            allBtn.addEventListener("click", () => {
+                activeFilter = "all";
+                updateTabsUI();
+                renderCards();
+            });
+            savedTabsContainer.appendChild(allBtn);
+        }
+
+        // Add pinned sources as tabs
+        const sources = getUniqueSources();
+        sources
+            .filter((src) => pinnedSources.has(src.feedUrl))
+            .forEach((src) => {
+                const btn = document.createElement("button");
+                btn.className =
+                    "tab-btn text-xl font-medium text-text-secondary hover:text-text-primary transition-colors pb-1 relative";
+                btn.textContent = src.feedTitle;
+                btn.dataset.filter = src.feedUrl;
+
+                btn.addEventListener("click", () => {
+                    activeFilter = src.feedUrl;
+                    updateTabsUI();
+                    renderCards();
+                });
+
+                savedTabsContainer.appendChild(btn);
+            });
+
+        updateTabsUI();
+    }
+
+    function updateTabsUI() {
+        const btns = document.querySelectorAll(".tab-btn");
+        btns.forEach((btn) => {
+            if ((btn as HTMLElement).dataset.filter === activeFilter) {
+                btn.classList.remove("text-text-secondary");
+                btn.classList.add(
+                    "text-text-primary",
+                    "border-b-[3px]",
+                    "border-text-primary",
+                );
+            } else {
+                btn.classList.remove(
+                    "text-text-primary",
+                    "border-b-[3px]",
+                    "border-text-primary",
+                );
+                btn.classList.add("text-text-secondary");
+            }
+        });
+    }
+
+    // --- CARDS ---
+
+    function getFilteredBookmarks() {
+        if (activeFilter === "all") return bookmarks;
+        return bookmarks.filter((b) => b.feedUrl === activeFilter);
+    }
+
+    function renderCards() {
+        if (!newsGrid) return;
+        const filtered = getFilteredBookmarks();
+
+        if (filtered.length === 0) {
+            newsGrid.innerHTML = `
+                <div class="col-span-full flex flex-col items-center justify-center p-32 text-center">
+                    <div class="w-16 h-16 bg-text-primary/5 rounded-full flex items-center justify-center mb-6 opacity-40">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-serif font-bold mb-2">${activeFilter === "all" ? "Your library is empty" : "No saved articles from this source"}</h3>
+                    <p class="text-text-secondary opacity-60 max-w-xs mx-auto text-sm">
+                        ${activeFilter === "all" ? "Save articles from your feed to read them later. They will stay here forever." : "Bookmark articles from this source to see them here."}
+                    </p>
+                </div>
+            `;
+            return;
+        }
+
+        newsGrid.innerHTML = filtered
+            .map(
+                (item: any) => `
+            <div 
+                class="news-card group flex flex-col no-underline border-b-[3px] border-text-primary border-r-[3px] nth-[3n]:border-r-0 relative"
+                data-guid="${item.guid}"
+            >
+                <a href="/preview?url=${encodeURIComponent(item.link)}&feedUrl=${encodeURIComponent(item.feedUrl)}" class="flex flex-col flex-1 no-underline">
+                    <div class="card-image-container p-4 pb-0">
+                        <div class="aspect-16/10 overflow-hidden bg-bg-secondary rounded-sm">
+                            <img 
+                                src="${item.imageUrl || `https://placehold.co/600x375/cec7c0/2e2522?text=${encodeURIComponent(item.title)}&font=serif`}" 
+                                alt="${item.title}" 
+                                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                loading="lazy"
+                            />
+                        </div>
+                    </div>
+                    <div class="p-4 pt-3 flex flex-col flex-1">
+                        <h2 class="card-title text-lg font-bold text-text-primary leading-snug mb-4 group-hover:opacity-70 transition-opacity line-clamp-3">
+                            ${item.title}
+                        </h2>
+                        <div class="card-meta flex items-center justify-between text-sm text-text-secondary mt-auto">
+                            <div class="flex items-center gap-2">
+                                <span class="font-medium text-text-primary text-xs">${item.feedTitle}</span>
+                                <span class="text-xs">▪</span>
+                                <time class="text-xs">${new Date(item.pubDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</time>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+                
+                <!-- Action buttons -->
+                <div class="card-actions flex flex-col absolute top-4 right-4 gap-1 z-10">
+                    <a href="${item.link}" target="_blank" rel="noopener" class="action-btn w-7 h-7 flex items-center justify-center rounded-full border border-text-secondary/30 text-text-secondary hover:border-text-primary hover:text-text-primary transition-colors text-xs bg-bg-primary/80 backdrop-blur-sm no-underline">↗</a>
+                    <button 
+                        class="bookmark-btn action-btn w-7 h-7 flex items-center justify-center rounded-full bg-text-primary text-bg-primary shadow-lg border border-text-primary transition-all hover:bg-red-600 hover:border-red-600"
+                        title="Remove from saved"
+                        data-guid="${item.guid}"
+                        data-feed-url="${item.feedUrl}"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        `,
+            )
+            .join("");
+
+        // Add event listeners for removal
+        document.querySelectorAll(".bookmark-btn").forEach((btn) => {
+            btn.addEventListener("click", async (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+
+                const b = e.currentTarget as HTMLButtonElement;
+                const guid = b.dataset.guid;
+                const feedUrl = b.dataset.feedUrl;
+                const itemData = bookmarks.find((i: any) => i.guid === guid);
+
+                // Optimistic UI
+                const card = b.closest(".news-card");
+                if (card) (card as HTMLElement).style.opacity = "0.3";
+
+                try {
+                    await fetch("/api/bookmarks/toggle", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${currentSession.access_token}`,
+                        },
+                        body: JSON.stringify({ item: itemData, feedUrl }),
+                    });
+
+                    // Remove from local state
+                    bookmarks = bookmarks.filter((i: any) => i.guid !== guid);
+                    buildSourceDropdown();
+                    renderTabs();
+                    renderCards();
+                } catch (err) {
+                    console.error("Failed to remove bookmark", err);
+                    if (card) (card as HTMLElement).style.opacity = "1";
+                }
+            });
+        });
+    }
+
+    // --- DROPDOWN LOGIC ---
+
+    function closeDropdown() {
+        dropdownMenu?.classList.add("hidden");
+    }
+
+    dropdownBtn?.addEventListener("click", (e) => {
+        e.stopPropagation();
+        dropdownMenu?.classList.toggle("hidden");
+    });
+
+    document.addEventListener("click", (e) => {
+        if (!(e.target as HTMLElement).closest("#subs-dropdown-wrapper")) {
+            closeDropdown();
+        }
+    });
+
+    // --- VIEW MODES (from FeedActionsMenu) ---
+
+    window.addEventListener("feed-action", (e: any) => {
+        const { action } = e.detail;
+        if (action === "refresh") {
+            loadBookmarks();
+        } else if (action.startsWith("view-")) {
+            const mode = action.replace("view-", "");
+            setViewMode(mode);
+        }
+    });
+
+    function setViewMode(mode: string) {
+        viewMode = mode;
+        newsGrid?.classList.remove("view-cards", "view-list", "view-compact");
+        newsGrid?.classList.add(`view-${mode}`);
+
+        if (mode === "list") {
+            newsGrid?.classList.remove(
+                "grid-cols-1",
+                "md:grid-cols-2",
+                "lg:grid-cols-3",
+            );
+            newsGrid?.classList.add("grid-cols-1");
+        } else if (mode === "cards") {
+            newsGrid?.classList.add(
+                "grid-cols-1",
+                "md:grid-cols-2",
+                "lg:grid-cols-3",
+            );
+            newsGrid?.classList.remove("grid-cols-1");
+        }
+    }
+
+    // Start
+    init();
+</script>
+
+<style is:global>
+    /* View Mode: List */
+    .view-list {
+        display: flex !important;
+        flex-direction: column !important;
+        grid-template-columns: none !important;
+    }
+    .view-list .news-card {
+        flex-direction: row !important;
+        min-height: 100px;
+        max-height: 120px;
+        border-right: none !important;
+        overflow: hidden;
+    }
+    .view-list .news-card > a {
+        flex-direction: row !important;
+        flex: 1;
+        min-width: 0;
+        overflow: hidden;
+    }
+    .view-list .card-image-container {
+        width: 160px;
+        min-width: 160px;
+        max-width: 160px;
+        padding: 10px !important;
+        flex-shrink: 0;
+    }
+    .view-list .card-image-container > div {
+        aspect-ratio: auto !important;
+        height: 100%;
+    }
+    .view-list .news-card > a > div:last-child {
+        flex: 1;
+        min-width: 0;
+        padding: 10px 12px !important;
+        overflow: hidden;
+    }
+    .view-list .card-title {
+        font-size: 0.95rem;
+        margin-bottom: 4px !important;
+        -webkit-line-clamp: 2;
+    }
+    .view-list .bookmark-btn {
+        position: relative !important;
+        top: auto !important;
+        right: auto !important;
+        width: 32px;
+        height: 32px;
+        flex-shrink: 0;
+        align-self: center;
+        margin-right: 12px;
+        margin-left: 4px;
+    }
+    .view-list .news-card > a > div:last-child > div:last-child {
+        flex-direction: row;
+        align-items: center;
+    }
+    /* Actions in list: flex row */
+    .view-list .card-actions {
+        position: relative !important;
+        top: auto !important;
+        right: auto !important;
+        flex-direction: row !important;
+        align-items: center;
+        align-self: center;
+        gap: 10px;
+        padding-right: 12px;
+        margin-left: 12px;
+        flex-shrink: 0;
+    }
+
+    /* View Mode: Compact */
+    .view-compact {
+        display: flex !important;
+        flex-direction: column !important;
+        grid-template-columns: none !important;
+    }
+    .view-compact .news-card {
+        flex-direction: row !important;
+        align-items: center;
+        border-right: none !important;
+        padding: 6px 16px;
+        min-height: auto;
+    }
+    .view-compact .news-card > a {
+        flex-direction: row !important;
+        flex: 1;
+        min-width: 0;
+        align-items: center;
+        gap: 12px;
+    }
+    .view-compact .card-image-container {
+        display: none !important;
+    }
+    .view-compact .news-card > a > div:last-child {
+        flex: 1;
+        min-width: 0;
+        padding: 4px 0 !important;
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center;
+        gap: 12px;
+    }
+    .view-compact .card-title {
+        font-size: 0.875rem;
+        margin-bottom: 0 !important;
+        flex: 1;
+        min-width: 0;
+        -webkit-line-clamp: 1;
+    }
+    .view-compact .card-meta {
+        flex-shrink: 0;
+        margin-top: 0 !important;
+    }
+    /* Actions in compact: flex row */
+    .view-compact .card-actions {
+        position: relative !important;
+        top: auto !important;
+        right: auto !important;
+        flex-direction: row !important;
+        align-items: center;
+        align-self: center;
+        gap: 10px;
+        padding-right: 8px;
+        margin-left: 16px;
+        flex-shrink: 0;
+    }
+</style>
