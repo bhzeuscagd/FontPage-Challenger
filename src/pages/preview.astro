@@ -1,0 +1,245 @@
+---
+import AppLayout from "../layouts/AppLayout.astro";
+import { fetchFeed } from "../lib/feed-parser";
+import Icon from "../components/Icon.astro";
+
+// Get the article URL and feed URL from query params
+const articleUrl = Astro.url.searchParams.get("url");
+const feedUrl =
+    Astro.url.searchParams.get("feedUrl") || "https://astro.build/rss.xml";
+
+// Fetch feed and find matching item
+let feed = null;
+let item: any = null;
+let itemIndex = -1;
+let prevItem: any = null;
+let nextItem: any = null;
+
+try {
+    const cleanUrl = (u: string) => u?.replace(/\/$/, "").toLowerCase();
+    const decodedArticleUrl = articleUrl
+        ? decodeURIComponent(articleUrl)
+        : null;
+    const targetUrl = cleanUrl(decodedArticleUrl || "");
+
+    feed = await fetchFeed(feedUrl);
+    if (feed && decodedArticleUrl) {
+        itemIndex = feed.items.findIndex((i: any) => {
+            return (
+                cleanUrl(i.link) === targetUrl || i.guid === decodedArticleUrl
+            );
+        });
+
+        if (itemIndex >= 0) {
+            item = feed.items[itemIndex];
+            prevItem = itemIndex > 0 ? feed.items[itemIndex - 1] : null;
+            nextItem =
+                itemIndex < feed.items.length - 1
+                    ? feed.items[itemIndex + 1]
+                    : null;
+        }
+    }
+} catch (e) {
+    console.error("Failed to fetch feed", e);
+}
+
+// Format date
+const formattedDate = item?.pubDate
+    ? new Date(item.pubDate).toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+      })
+    : "";
+
+const feedTitle = feed?.title || "Feed";
+const pageTitle = item ? `${item.title} - Frontpage` : "Preview - Frontpage";
+
+// SEO description: use contentSnippet truncated to ~160 chars
+const metaDescription = item?.contentSnippet
+    ? item.contentSnippet.substring(0, 160).trim() +
+      (item.contentSnippet.length > 160 ? "…" : "")
+    : "Read this article on Frontpage";
+
+// Guaranteed hero image — fallback to a branded placeholder
+const heroImage =
+    item?.imageUrl ||
+    `https://placehold.co/1200x630/2e2522/f5f5f5?text=${encodeURIComponent(item?.title || "Frontpage")}&font=serif`;
+
+// Canonical URL for sharing
+const shareUrl = Astro.url.href;
+---
+
+<AppLayout
+    title={pageTitle}
+    description={metaDescription}
+    image={heroImage}
+    url={shareUrl}
+    type="article"
+    author={item?.author}
+>
+    {
+        item ? (
+            <section>
+                {/* Header: centered title area */}
+                <div class="flex flex-col items-center justify-center text-center">
+                    <div class="flex flex-col gap-5 items-center mt-20">
+                        <p class="text-2xl">
+                            {feedTitle} • {formattedDate}
+                        </p>
+                        <h1 class="text-6xl font-serif max-w-2xl">
+                            {item.title}
+                        </h1>
+                        <button
+                            id="share-btn"
+                            class="flex items-center gap-2 text-md text-text-secondary hover:text-text-primary transition-colors cursor-pointer bg-transparent border-none"
+                            data-title={item.title}
+                            data-url={shareUrl}
+                            data-description={metaDescription}
+                        >
+                            <span id="share-label">Share</span>
+                            <Icon name="Link" size={17} />
+                        </button>
+                    </div>
+
+                    {/* Hero image — always shown */}
+                    <div class="w-full mt-10">
+                        <img
+                            src={heroImage}
+                            alt={item.title}
+                            class="w-full object-cover"
+                        />
+                    </div>
+                </div>
+
+                {/* Body: 12-col grid with text in center */}
+                <div class="mt-10 px-[2.78rem] w-full">
+                    <div class="max-w-[1440px] mx-auto grid grid-cols-1 md:grid-cols-12 gap-x-[1.11rem]">
+                        <div class="col-span-1 md:col-start-4 md:col-span-6 text-left">
+                            {/* Article content */}
+                            {item.content ? (
+                                <div
+                                    class="text-lg leading-relaxed prose-preview"
+                                    set:html={item.content}
+                                />
+                            ) : item.contentSnippet ? (
+                                <p class="text-lg leading-relaxed">
+                                    {item.contentSnippet}
+                                </p>
+                            ) : (
+                                <p class="text-lg leading-relaxed text-text-secondary">
+                                    No content available for this article.
+                                </p>
+                            )}
+
+                            {/* Visit original */}
+                            <a
+                                href={item.link}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="inline-flex items-center gap-1 mt-6 text-text-secondary hover:text-text-primary transition-colors no-underline"
+                            >
+                                Visit original article{" "}
+                                <Icon name="External" size={14} />
+                            </a>
+
+                            {/* Next / Previous */}
+                            <div class="flex items-center justify-between mt-8 pb-10">
+                                {prevItem ? (
+                                    <a
+                                        href={`/preview?url=${encodeURIComponent(prevItem.link)}&feedUrl=${encodeURIComponent(feedUrl)}`}
+                                        class="text-text-secondary hover:text-text-primary transition-colors no-underline"
+                                    >
+                                        ← Previous
+                                    </a>
+                                ) : (
+                                    <span class="text-text-tertiary">
+                                        ← Previous
+                                    </span>
+                                )}
+                                {nextItem ? (
+                                    <a
+                                        href={`/preview?url=${encodeURIComponent(nextItem.link)}&feedUrl=${encodeURIComponent(feedUrl)}`}
+                                        class="text-text-secondary hover:text-text-primary transition-colors no-underline"
+                                    >
+                                        Next →
+                                    </a>
+                                ) : (
+                                    <span class="text-text-tertiary">
+                                        Next →
+                                    </span>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        ) : (
+            <section class="flex flex-col items-center justify-center min-h-[60vh] text-center">
+                <Icon
+                    name="Rss"
+                    size={64}
+                    class="text-text-secondary opacity-30 mb-6"
+                />
+                <h1 class="text-3xl font-serif mb-2">Article not found</h1>
+                <p class="text-text-secondary mb-6">
+                    The article you're looking for couldn't be loaded.
+                </p>
+                <a
+                    href="/dashboard"
+                    class="text-text-primary hover:opacity-70 transition-opacity no-underline"
+                >
+                    ← Back to Dashboard
+                </a>
+            </section>
+        )
+    }
+</AppLayout>
+
+<script>
+    const shareBtn = document.getElementById("share-btn");
+    const shareLabel = document.getElementById("share-label");
+
+    shareBtn?.addEventListener("click", async () => {
+        const title = shareBtn.dataset.title || "";
+        const url = shareBtn.dataset.url || window.location.href;
+        const description = shareBtn.dataset.description || "";
+
+        // Try native Web Share API first (mobile browsers)
+        if (navigator.share) {
+            try {
+                await navigator.share({ title, text: description, url });
+                return;
+            } catch (err) {
+                // User cancelled or share failed — fall through to clipboard
+                if ((err as DOMException).name === "AbortError") return;
+            }
+        }
+
+        // Fallback: copy to clipboard
+        try {
+            await navigator.clipboard.writeText(url);
+            if (shareLabel) {
+                const original = shareLabel.textContent;
+                shareLabel.textContent = "Link copied!";
+                setTimeout(() => {
+                    shareLabel.textContent = original;
+                }, 2000);
+            }
+        } catch {
+            // Last resort: select + copy
+            const input = document.createElement("input");
+            input.value = url;
+            document.body.appendChild(input);
+            input.select();
+            document.execCommand("copy");
+            document.body.removeChild(input);
+            if (shareLabel) {
+                shareLabel.textContent = "Link copied!";
+                setTimeout(() => {
+                    shareLabel.textContent = "Share";
+                }, 2000);
+            }
+        }
+    });
+</script>

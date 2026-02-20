@@ -1,0 +1,170 @@
+---
+import Icon from "./Icon.astro";
+---
+
+<div class="relative inline-block text-left" id="feed-actions-menu">
+    <button
+        id="menu-toggle"
+        class="text-text-secondary hover:bg-text-primary hover:text-bg-primary transition-all p-1 px-3 rounded-md flex items-center gap-2 text-xs border border-text-secondary/20 shadow-sm"
+    >
+        <Icon name="Plus" size={14} />
+        Options
+        <Icon name="Chevron" size={12} class="rotate-90 opacity-50" />
+    </button>
+
+    <div
+        id="menu-dropdown"
+        class="hidden absolute right-0 mt-2 w-48 origin-top-right rounded-md bg-bg-primary border border-text-primary/20 shadow-xl z-50 overflow-hidden"
+    >
+        <div class="py-1">
+            <button
+                class="menu-item flex w-full items-center gap-3 px-4 py-2 text-xs text-text-primary hover:bg-text-primary/10 transition-colors border-none bg-transparent"
+                data-action="add"
+            >
+                <Icon name="Plus" size={14} />
+                Add New Feed
+            </button>
+            <button
+                class="menu-item flex w-full items-center gap-3 px-4 py-2 text-xs text-text-primary hover:bg-text-primary/10 transition-colors border-none bg-transparent"
+                data-action="refresh"
+            >
+                <Icon name="Refresh" size={14} />
+                Refresh All
+            </button>
+            <button
+                class="menu-item flex w-full items-center gap-3 px-4 py-2 text-xs text-text-primary hover:bg-text-primary/10 transition-colors border-none bg-transparent"
+                data-action="mark-read"
+            >
+                <Icon name="Bookmark" size={14} />
+                Mark All Read
+            </button>
+
+            <div class="h-px bg-text-primary/10 my-1"></div>
+
+            <!-- View Options -->
+            <div
+                class="px-4 py-1 text-[10px] uppercase font-mono tracking-widest text-text-secondary opacity-50"
+            >
+                View Mode
+            </div>
+            <button
+                class="menu-item view-mode-btn flex w-full items-center justify-between px-4 py-2 text-xs text-text-primary hover:bg-text-primary/10 transition-colors border-none bg-transparent"
+                data-action="view-cards"
+            >
+                <div class="flex items-center gap-3">
+                    <Icon name="Globe" size={14} />
+                    Card View
+                </div>
+                <div class="active-marker hidden text-text-primary">
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="12"
+                        height="12"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="3"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        ><polyline points="20 6 9 17 4 12"></polyline></svg
+                    >
+                </div>
+            </button>
+            <button
+                class="menu-item view-mode-btn flex w-full items-center justify-between px-4 py-2 text-xs text-text-primary hover:bg-text-primary/10 transition-colors border-none bg-transparent"
+                data-action="view-list"
+            >
+                <div class="flex items-center gap-3">
+                    <Icon name="Calendar" size={14} />
+                    List View
+                </div>
+                <div class="active-marker hidden text-text-primary">
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="12"
+                        height="12"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="3"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        ><polyline points="20 6 9 17 4 12"></polyline></svg
+                    >
+                </div>
+            </button>
+            <button
+                class="menu-item view-mode-btn flex w-full items-center justify-between px-4 py-2 text-xs text-text-primary hover:bg-text-primary/10 transition-colors border-none bg-transparent"
+                data-action="view-compact"
+            >
+                <div class="flex items-center gap-3">
+                    <Icon name="Settings" size={14} />
+                    Compact View
+                </div>
+                <div class="active-marker hidden text-text-primary">
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="12"
+                        height="12"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="3"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        ><polyline points="20 6 9 17 4 12"></polyline></svg
+                    >
+                </div>
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const menu = document.getElementById("feed-actions-menu");
+    const toggle = document.getElementById("menu-toggle");
+    const dropdown = document.getElementById("menu-dropdown");
+
+    toggle?.addEventListener("click", () => {
+        dropdown?.classList.toggle("hidden");
+    });
+
+    document.addEventListener("click", (e) => {
+        if (!menu?.contains(e.target as Node)) {
+            dropdown?.classList.add("hidden");
+        }
+    });
+
+    // Initial View Mode (Cards)
+    updateViewMarkers("view-cards");
+
+    // Handle actions
+    menu?.querySelectorAll(".menu-item").forEach((btn) => {
+        btn.addEventListener("click", () => {
+            const action = (btn as HTMLElement).dataset.action;
+            dropdown?.classList.add("hidden");
+
+            if (action === "add") {
+                window.dispatchEvent(new CustomEvent("open-add-feed-modal"));
+            } else {
+                if (action?.startsWith("view-")) {
+                    updateViewMarkers(action);
+                }
+                window.dispatchEvent(
+                    new CustomEvent("feed-action", { detail: { action } }),
+                );
+            }
+        });
+    });
+
+    function updateViewMarkers(activeAction: string) {
+        menu?.querySelectorAll(".view-mode-btn").forEach((btn) => {
+            const marker = btn.querySelector(".active-marker");
+            if ((btn as HTMLElement).dataset.action === activeAction) {
+                marker?.classList.remove("hidden");
+            } else {
+                marker?.classList.add("hidden");
+            }
+        });
+    }
+</script>

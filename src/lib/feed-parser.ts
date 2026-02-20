@@ -34,6 +34,31 @@ export interface FeedItem {
 }
 
 /**
+ * Fetches the article HTML and tries to extract the og:image meta tag.
+ */
+async function fetchOgImage(url: string): Promise<string | undefined> {
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 3000); // 3 seconds timeout
+
+    const response = await fetch(url, { 
+      signal: controller.signal,
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+      }
+    });
+    clearTimeout(timeoutId);
+
+    const html = await response.text();
+    const ogMatch = html.match(/<meta[^>]+property="og:image"[^>]+content="([^">]+)"/);
+    return ogMatch ? ogMatch[1] : undefined;
+  } catch (error) {
+    // console.error(`Error fetching OG image for ${url}:`, error);
+    return undefined;
+  }
+}
+
+/**
  * Fetches and parses an RSS/Atom feed from a URL.
  * Normalizes the output to a standard format.
  */
@@ -42,7 +67,7 @@ export async function fetchFeed(url: string): Promise<ValidatedFeed> {
     const feed = await parser.parseURL(url);
 
     // Normalize feed items
-    const items: FeedItem[] = feed.items.map((item) => {
+    const items: FeedItem[] = await Promise.all(feed.items.map(async (item) => {
       // Extract image from various possible sources
       let imageUrl = item.enclosure?.url;
       
@@ -62,6 +87,12 @@ export async function fetchFeed(url: string): Promise<ValidatedFeed> {
         }
       }
 
+      // FINAL FALLBACK: Dynamic OG Image Fetch
+      // We only do this if imageUrl is still missing
+      if (!imageUrl && item.link) {
+        imageUrl = await fetchOgImage(item.link);
+      }
+
       return {
         guid: item.guid || item.link || item.title || crypto.randomUUID(), // Ensure GUID exists
         title: item.title || 'Untitled',
@@ -69,11 +100,11 @@ export async function fetchFeed(url: string): Promise<ValidatedFeed> {
         pubDate: item.pubDate || new Date().toISOString(),
         content: item.contentEncoded || item.content || item.contentSnippet || '',
         contentSnippet: item.contentSnippet || '',
-        author: item.creator || item.author || '',
+        author: (item as any).creator || (item as any).author || '',
         imageUrl,
         categories: item.categories,
       };
-    });
+    }));
 
     return {
       title: feed.title || 'Unknown Feed',
@@ -88,3 +119,4 @@ export async function fetchFeed(url: string): Promise<ValidatedFeed> {
     throw new Error(`Failed to parse feed: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
+

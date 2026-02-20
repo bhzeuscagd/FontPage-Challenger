@@ -14,8 +14,7 @@ const initialMode = Astro.url.pathname.includes("register")
         <!-- OVERLAY PANEL (the sliding door) -->
         <div
             id="overlay-panel"
-            class="absolute top-0 left-0 w-1/2 h-full z-20 flex flex-col items-center justify-center p-16 text-center transition-transform duration-700 ease-[cubic-bezier(0.76,0,0.24,1)]"
-            style="background-color: var(--color-bg-primary);"
+            class="absolute top-0 left-0 w-1/2 h-full z-20 flex flex-col items-center justify-center p-16 text-center transition-transform duration-700 ease-[cubic-bezier(0.76,0,0.24,1)] bg-bg-primary"
         >
             <!-- Login welcome (visible when mode=login) -->
             <div

@@ -12,23 +12,29 @@ const menuItems = [
 const currentPath = Astro.url.pathname;
 ---
 
-<aside class="w-56 flex flex-col h-full py-6">
+<aside
+  id="app-sidebar"
+  class="w-56 flex flex-col h-full py-6 transition-all duration-300 overflow-hidden"
+>
   <!-- Logo -->
   <div class="px-6 mb-6">
     <a
       href="/dashboard"
       class="flex items-center gap-2 text-text-primary no-underline"
     >
-      <Icon name="Rss" size={22} />
-      <span class="text-lg font-serif font-bold tracking-tight">Frontpage</span>
+      <Icon name="Rss" size={22} class="shrink-0" />
+      <span
+        class="sidebar-label text-lg font-serif font-bold tracking-tight whitespace-nowrap overflow-hidden transition-all duration-300"
+        >Frontpage</span
+      >
     </a>
   </div>
 
   <!-- Horizontal line separator -->
-  <div class="mx-6 h-px bg-border mb-4"></div>
+  <div class="mx-6 h-[3px] bg-text-primary mb-2"></div>
 
   <!-- Navigation -->
-  <nav class="flex-1 px-3">
+  <nav class="flex-1 px-3 space-y-4">
     <ul class="space-y-1">
       {
         menuItems.map((item) => {
@@ -38,20 +44,68 @@ const currentPath = Astro.url.pathname;
               <a
                 href={item.href}
                 class:list={[
-                  "sidebar-link flex items-center gap-3 px-3 py-2.5 text-sm font-medium transition-all no-underline relative",
+                  "sidebar-link flex items-center gap-3 px-3 py-1.5 text-sm font-medium transition-all no-underline relative",
                   isActive
                     ? "text-text-primary active"
                     : "text-text-secondary hover:text-text-primary",
                 ]}
+                title={item.label}
               >
-                <span>{item.label}</span>
+                <Icon name={item.icon} size={18} class="shrink-0" />
+                <span class="sidebar-label whitespace-nowrap overflow-hidden transition-all duration-300">
+                  {item.label}
+                </span>
               </a>
             </li>
           );
         })
       }
     </ul>
+
+    <!-- Subscriptions Section -->
+    <div class="mt-4 pt-4 border-t border-text-primary/10">
+      <div class="px-3 flex items-center justify-between mb-2">
+        <span
+          class="sidebar-label text-[10px] font-mono uppercase tracking-widest text-text-secondary opacity-50"
+          >Subscriptions</span
+        >
+        <button
+          id="refresh-subs"
+          class="sidebar-label text-text-secondary hover:text-text-primary transition-colors cursor-pointer"
+          title="Refresh list"
+        >
+          <Icon name="Refresh" size={12} />
+        </button>
+      </div>
+      <ul id="sidebar-subs-list" class="space-y-0.5">
+        <!-- Dynamic subscriptions will be injected here -->
+      </ul>
+    </div>
   </nav>
+
+  <!-- Collapse toggle button -->
+  <div class="px-3 mb-2">
+    <button
+      id="sidebar-toggle"
+      class="flex items-center gap-3 px-3 py-1.5 text-sm font-medium text-text-secondary hover:text-text-primary transition-all w-full cursor-pointer bg-transparent border-none"
+      title="Toggle sidebar"
+    >
+      <Icon
+        name="PanelLeftClose"
+        size={18}
+        class="shrink-0 sidebar-icon-collapse"
+      />
+      <Icon
+        name="PanelLeftOpen"
+        size={18}
+        class="shrink-0 sidebar-icon-expand hidden"
+      />
+      <span
+        class="sidebar-label whitespace-nowrap overflow-hidden transition-all duration-300"
+        >Collapse</span
+      >
+    </button>
+  </div>
 
   <!-- Bottom user area -->
   <div class="p-3 mt-auto">
@@ -59,11 +113,13 @@ const currentPath = Astro.url.pathname;
       class="flex items-center gap-3 p-2 rounded-xl border border-transparent hover:bg-text-primary hover:border-text-primary transition-all cursor-pointer group"
     >
       <div
-        class="w-9 h-9 rounded-full bg-surface border border-border flex items-center justify-center text-xs font-bold text-text-secondary group-hover:text-bg-primary group-hover:border-bg-primary/30 transition-colors"
+        class="w-9 h-9 rounded-full bg-surface border border-border flex items-center justify-center text-xs font-bold text-text-secondary group-hover:text-bg-primary group-hover:border-bg-primary/30 transition-colors shrink-0"
       >
         <Icon name="User" size={16} />
       </div>
-      <div class="flex-1 min-w-0">
+      <div
+        class="sidebar-label flex-1 min-w-0 overflow-hidden transition-all duration-300"
+      >
         <p
           class="text-sm font-medium text-text-primary group-hover:text-bg-primary truncate"
           id="user-name"
@@ -80,29 +136,268 @@ const currentPath = Astro.url.pathname;
       <Icon
         name="Chevron"
         size={16}
-        class="text-text-secondary opacity-50 group-hover:opacity-100 group-hover:text-bg-primary"
+        class="sidebar-label text-text-secondary opacity-50 group-hover:opacity-100 group-hover:text-bg-primary transition-all duration-300 overflow-hidden"
       />
     </div>
   </div>
 </aside>
 
+<script>
+  import { supabase } from "../lib/supabase";
+
+  const sidebar = document.getElementById("app-sidebar");
+  const toggleBtn = document.getElementById("sidebar-toggle");
+  const collapseIcon = toggleBtn?.querySelector(".sidebar-icon-collapse");
+  const expandIcon = toggleBtn?.querySelector(".sidebar-icon-expand");
+  const subsList = document.getElementById("sidebar-subs-list");
+  const refreshBtn = document.getElementById("refresh-subs");
+
+  let currentSubscriptions: any[] = [];
+
+  // --- Sidebar Collapse/Expand ---
+  const savedState = localStorage.getItem("sidebar-collapsed");
+  if (savedState === "true") collapseSidebar();
+
+  toggleBtn?.addEventListener("click", () => {
+    sidebar?.classList.contains("sidebar-collapsed")
+      ? expandSidebar()
+      : collapseSidebar();
+  });
+
+  function collapseSidebar() {
+    sidebar?.classList.remove("w-56");
+    sidebar?.classList.add("w-16", "sidebar-collapsed");
+    collapseIcon?.classList.add("hidden");
+    expandIcon?.classList.remove("hidden");
+    localStorage.setItem("sidebar-collapsed", "true");
+  }
+
+  function expandSidebar() {
+    sidebar?.classList.remove("w-16", "sidebar-collapsed");
+    sidebar?.classList.add("w-56");
+    collapseIcon?.classList.remove("hidden");
+    expandIcon?.classList.add("hidden");
+    localStorage.setItem("sidebar-collapsed", "false");
+  }
+
+  // --- Dynamic Subscriptions ---
+
+  async function loadSidebarSubs() {
+    if (!subsList) return;
+
+    // Show skeleton loading state
+    subsList.innerHTML = Array(3)
+      .fill(0)
+      .map(
+        () => `
+      <li class="flex items-center gap-2 px-3 py-1 opacity-20 animate-pulse sidebar-label">
+        <div class="shrink-0 w-4 h-4 rounded-[2px] bg-text-secondary/50"></div>
+        <div class="h-2 bg-text-secondary/50 rounded flex-1"></div>
+      </li>
+    `,
+      )
+      .join("");
+
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    if (!session) {
+      subsList.innerHTML = `
+        <li class="px-3 py-2 text-[10px] font-mono text-text-secondary opacity-40 sidebar-label">
+          Not signed in
+        </li>
+      `;
+      return;
+    }
+
+    try {
+      const response = await fetch("/api/feeds/list", {
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+
+      if (!response.ok) {
+        throw new Error(`API Error: ${response.status}`);
+      }
+
+      const data = await response.json();
+      if (Array.isArray(data)) {
+        currentSubscriptions = data;
+
+        // Fetch unread counts
+        const countsRes = await fetch("/api/feeds/unread-counts", {
+          headers: { Authorization: `Bearer ${session.access_token}` },
+        });
+        const unreadData = await countsRes.json();
+
+        // Merge
+        currentSubscriptions = currentSubscriptions.map((sub) => {
+          const countInfo = unreadData.find(
+            (c: any) => c.subscriptionId === sub.id,
+          );
+          return { ...sub, unreadCount: countInfo?.unreadCount || 0 };
+        });
+
+        renderSidebarSubs();
+      } else {
+        throw new Error("Invalid API response");
+      }
+    } catch (err) {
+      console.error("Failed to load sidebar subs", err);
+      subsList.innerHTML = `
+        <li class="px-3 py-2 text-[10px] font-mono text-red-500/60 leading-tight sidebar-label">
+          Error loading feeds.<br/>Check SQL Migration.
+        </li>
+      `;
+    }
+  }
+
+  function renderSidebarSubs() {
+    if (!subsList) return;
+
+    if (currentSubscriptions.length === 0) {
+      subsList.innerHTML = `
+        <li class="px-3 py-2 text-[10px] font-mono text-text-secondary opacity-40 sidebar-label">
+          No subscriptions yet.
+        </li>
+      `;
+      return;
+    }
+
+    subsList.innerHTML = "";
+
+    currentSubscriptions.forEach((sub) => {
+      const li = document.createElement("li");
+      li.className =
+        "group relative flex items-center gap-2 px-3 py-1 rounded-md hover:bg-text-primary/10 transition-colors cursor-pointer text-text-secondary hover:text-text-primary";
+
+      const title = sub.custom_title || sub.feeds.title;
+      const unreadCount = sub.unreadCount || 0;
+
+      // Favicon handling
+      const siteUrl = sub.feeds.site_url || sub.feeds.url;
+      let domain = "";
+      try {
+        domain = new URL(siteUrl).hostname;
+      } catch (e) {
+        domain = siteUrl;
+      }
+      const faviconUrl = `https://www.google.com/s2/favicons?sz=64&domain=${domain}`;
+
+      li.innerHTML = `
+        <div class="shrink-0 w-4 h-4 flex items-center justify-center overflow-hidden rounded-[2px] bg-text-primary/5">
+          <img src="${faviconUrl}" class="w-full h-full object-contain" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+          <span class="hidden w-full h-full items-center justify-center text-[10px] font-bold opacity-40 bg-text-primary/10">
+            ${sub.feeds.title?.[0] || "R"}
+          </span>
+        </div>
+        <span class="sidebar-label flex-1 truncate text-xs transition-all duration-300">
+          ${title}
+        </span>
+        <div class="sidebar-label flex items-center gap-1.5 shrink-0 transition-opacity">
+          ${
+            unreadCount > 0
+              ? `
+            <span class="bg-text-secondary/10 text-text-secondary text-[9px] px-1 rounded-full min-w-[14px] text-center font-bold unread-badge">
+              ${unreadCount}
+            </span>
+          `
+              : ""
+          }
+          <button class="fav-toggle p-0.5 rounded hover:bg-text-primary/20 transition-all ${sub.is_favorite ? "text-yellow-500 opacity-100" : "opacity-0 group-hover:opacity-100"}" data-id="${sub.id}" data-fav="${sub.is_favorite}">
+            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="${sub.is_favorite ? "currentColor" : "none"}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+          </button>
+        </div>
+      `;
+
+      li.onclick = async (e) => {
+        if ((e.target as HTMLElement).closest(".fav-toggle")) return;
+
+        // UI optimismo: hide badge
+        const badge = li.querySelector(".unread-badge");
+        if (badge) badge.classList.add("hidden");
+
+        window.dispatchEvent(
+          new CustomEvent("select-feed", {
+            detail: {
+              url: sub.feeds.url,
+              title,
+              id: sub.feed_id,
+              subscriptionId: sub.id,
+            },
+          }),
+        );
+
+        // Mark as read in backend
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+        if (!session) return;
+        try {
+          fetch("/api/feeds/mark-read", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${session.access_token}`,
+            },
+            body: JSON.stringify({ subscriptionId: sub.id }),
+          });
+        } catch (err) {
+          console.error(err);
+        }
+      };
+
+      // Fav toggle logic
+      const toggle = li.querySelector(".fav-toggle");
+      toggle?.addEventListener("click", async (e) => {
+        e.stopPropagation();
+        const subId = (toggle as HTMLElement).dataset.id;
+        const isFav = (toggle as HTMLElement).dataset.fav === "true";
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+        if (!session) return;
+
+        try {
+          const res = await fetch("/api/feeds/favorite", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${session.access_token}`,
+            },
+            body: JSON.stringify({ subscriptionId: subId, isFavorite: !isFav }),
+          });
+          if (res.ok) {
+            loadSidebarSubs();
+            window.dispatchEvent(new CustomEvent("feed-favorite-toggled"));
+          }
+        } catch (err) {
+          console.error(err);
+        }
+      });
+
+      subsList.appendChild(li);
+    });
+  }
+
+  // Subscribe to auth changes
+  supabase.auth.onAuthStateChange((event, session) => {
+    if (session) loadSidebarSubs();
+  });
+
+  refreshBtn?.addEventListener("click", loadSidebarSubs);
+  window.addEventListener("feed-added", loadSidebarSubs);
+  window.addEventListener("unread-counts-changed", loadSidebarSubs);
+
+  loadSidebarSubs();
+</script>
+
 <style>
-  .sidebar-link::after {
-    content: "";
-    position: absolute;
-    bottom: 2px;
-    left: 12px;
-    width: 0;
-    height: 2px;
-    background-color: var(--color-text-primary);
-    transition: width 0.3s ease;
-  }
-
-  .sidebar-link:hover::after {
-    width: calc(100% - 24px);
-  }
-
-  .sidebar-link.active::after {
-    width: calc(100% - 24px);
+  .sidebar-collapsed .sidebar-label {
+    width: 0 !important;
+    opacity: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    pointer-events: none;
+    overflow: hidden;
   }
 </style>

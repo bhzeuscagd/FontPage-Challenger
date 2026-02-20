@@ -1,153 +1,301 @@
 ---
 import AppLayout from "../layouts/AppLayout.astro";
-import { fetchFeed } from "../lib/feed-parser";
 import Icon from "../components/Icon.astro";
-
-// Fetch sample feed server-side
-let feed = null;
-try {
-    feed = await fetchFeed("https://astro.build/rss.xml");
-} catch (e) {
-    console.error("Failed to fetch feed", e);
-}
+import AddFeedModal from "../components/AddFeedModal.astro";
+import FeedActionsMenu from "../components/FeedActionsMenu.astro";
 ---
 
 <AppLayout title="Dashboard - Frontpage">
+    <div class="mt-25 pl-10">
+        <h1 class="text-6xl font-serif text-text-primary">News</h1>
+    </div>
+
     <!-- Subscriptions filter tabs -->
-    <div class="flex items-center gap-6 pb-4">
-        <span class="text-xs font-mono uppercase text-text-secondary opacity-60">Subscriptions</span>
-        <button class="text-sm font-medium text-text-primary border-b-2 border-text-primary pb-1">All</button>
-        <button class="sub-tab text-sm font-medium text-text-secondary hover:text-text-primary transition-colors pb-1 relative">
-            TechCrunch
-        </button>
-        <button class="sub-tab text-sm font-medium text-text-secondary hover:text-text-primary transition-colors pb-1 relative">
-            The Verge
-        </button>
-        <button class="ml-auto text-text-secondary hover:bg-text-primary hover:text-bg-primary transition-all p-1 px-2 rounded-md flex items-center gap-1 text-xs">
-            <Icon name="Plus" size={14} />
-            Add
-        </button>
+    <div class="flex items-center gap-6 pb-4 pl-10">
+        <span class="text-xs font-mono uppercase text-text-secondary opacity-60"
+            >Favorites</span
+        >
+        <div id="subs-tabs" class="flex items-center gap-6">
+            <button
+                class="tab-btn text-xl font-medium text-text-primary border-b-[3px] border-text-primary pb-1"
+                data-url="all">All</button
+            >
+            <!-- Dynamic favorite tabs will be injected here -->
+        </div>
+
+        <div class="ml-auto pr-10">
+            <FeedActionsMenu />
+        </div>
     </div>
 
     <!-- Thick horizontal line under tabs -->
-    <div class="h-[2px] bg-text-primary/20 mb-0"></div>
+    <div class="h-[3px] bg-text-primary mb-0"></div>
 
-    <!-- 3-Column News Grid — flush cards, thick line separators -->
-    <div class="news-grid">
-        {
-            feed ? (
-                feed.items.map((item: any, idx: number) => (
-                    <a
-                        href={item.link}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        class="group block no-underline news-card"
-                    >
-                        <!-- Card Image -->
-                        {item.imageUrl ? (
-                            <div class="aspect-16/10 overflow-hidden bg-bg-secondary">
-                                <img
-                                    src={item.imageUrl}
-                                    alt=""
-                                    class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                                    loading="lazy"
-                                />
-                            </div>
-                        ) : (
-                            <div class="aspect-16/10 bg-bg-secondary flex items-center justify-center">
-                                <Icon name="Rss" size={48} class="text-text-secondary opacity-30" />
-                            </div>
-                        )}
-
-                        <!-- Card Content -->
-                        <div class="p-5">
-                            <h2 class="text-lg font-bold text-text-primary leading-snug mb-6 group-hover:opacity-70 transition-opacity line-clamp-3">
-                                {item.title}
-                            </h2>
-
-                            <!-- Footer: Category • Date • Arrow -->
-                            <div class="flex items-center justify-between text-sm text-text-secondary">
-                                <div class="flex items-center gap-2">
-                                    <span class="font-medium text-text-primary text-xs">{feed.title || "Feed"}</span>
-                                    <span class="text-xs">▪</span>
-                                    <time datetime={item.pubDate} class="text-xs">
-                                        {new Date(item.pubDate).toLocaleDateString("en-US", {
-                                            month: "short",
-                                            day: "numeric",
-                                            year: "numeric",
-                                        })}
-                                    </time>
-                                </div>
-                                <span class="w-6 h-6 flex items-center justify-center rounded-full border border-text-secondary/30 text-text-secondary group-hover:border-text-primary group-hover:text-text-primary transition-colors text-xs">
-                                    ↗
-                                </span>
-                            </div>
-                        </div>
-                    </a>
-                ))
-            ) : (
-                <div class="col-span-3 p-12 text-center text-text-secondary">
-                    <p>No feed content available or error loading feed.</p>
+    <!-- 3-Column News Grid -->
+    <div
+        id="news-grid"
+        class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 min-h-[400px] view-cards"
+    >
+        <div
+            class="col-span-full flex items-center justify-center p-20 text-text-secondary opacity-50"
+        >
+            <div class="flex flex-col items-center gap-4">
+                <div
+                    class="animate-spin rounded-full h-8 w-8 border-b-2 border-text-primary"
+                >
                 </div>
-            )
-        }
+                <p class="font-mono text-sm uppercase tracking-widest">
+                    Loading news...
+                </p>
+            </div>
+        </div>
     </div>
 
+    <AddFeedModal />
     <button id="logout-btn" class="hidden">Sign Out</button>
 </AppLayout>
-
-<style>
-    .news-grid {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-    }
-
-    .news-card {
-        border-right: 2px solid var(--color-border);
-        border-bottom: 2px solid var(--color-border);
-    }
-
-    /* Remove right border on every 3rd card */
-    .news-card:nth-child(3n) {
-        border-right: none;
-    }
-
-    /* Expanding underline on hover */
-    .sub-tab::after {
-        content: '';
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        width: 0;
-        height: 2px;
-        background-color: var(--color-text-primary);
-        transition: width 0.3s ease;
-    }
-
-    .sub-tab:hover::after {
-        width: 100%;
-    }
-</style>
 
 <script>
     import { supabase } from "../lib/supabase";
 
+    const subsContainer = document.getElementById("subs-tabs");
+    const newsGrid = document.getElementById("news-grid");
     const userInfo = document.querySelector("#user-info") as HTMLElement;
 
-    async function checkUser() {
+    let currentSession: any = null;
+    let subscriptions: any[] = [];
+    let currentFeedUrl: string = "all";
+    let viewMode: string = "cards"; // cards, list, compact
+
+    async function init() {
         const {
             data: { session },
         } = await supabase.auth.getSession();
-
         if (!session) {
             window.location.href = "/login";
             return;
         }
-
-        if (userInfo && session.user.email) {
+        currentSession = session;
+        if (userInfo && session.user.email)
             userInfo.textContent = session.user.email;
+
+        await loadSubscriptions();
+        loadFeed("all", "All Subscriptions");
+    }
+
+    async function loadSubscriptions() {
+        try {
+            const response = await fetch("/api/feeds/list", {
+                headers: {
+                    Authorization: `Bearer ${currentSession.access_token}`,
+                },
+            });
+            subscriptions = await response.json();
+            renderFavoriteTabs();
+        } catch (err) {
+            console.error("Failed to load subs", err);
         }
     }
 
-    checkUser();
+    function renderFavoriteTabs() {
+        if (!subsContainer) return;
+
+        const allBtn = subsContainer.querySelector('[data-url="all"]');
+        subsContainer.innerHTML = "";
+        if (allBtn) subsContainer.appendChild(allBtn);
+
+        // Only show top 3 favorites
+        const favorites = subscriptions
+            .filter((s) => s.is_favorite)
+            .slice(0, 3);
+
+        favorites.forEach((sub) => {
+            const btn = document.createElement("button");
+            const title = sub.custom_title || sub.feeds.title;
+            btn.className =
+                "tab-btn text-xl font-medium text-text-secondary hover:text-text-primary transition-colors pb-1 relative";
+            btn.textContent = title;
+            btn.dataset.url = sub.feeds.url;
+
+            btn.addEventListener("click", () => {
+                loadFeed(sub.feeds.url, title);
+            });
+
+            subsContainer.appendChild(btn);
+        });
+    }
+
+    async function loadFeed(url: string, title: string) {
+        if (!newsGrid) return;
+        currentFeedUrl = url;
+        updateTabsUI(url);
+
+        newsGrid.innerHTML = `
+            <div class="col-span-full flex items-center justify-center p-20 text-text-secondary opacity-50">
+                <div class="flex flex-col items-center gap-4">
+                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-text-primary"></div>
+                    <p class="font-mono text-sm uppercase tracking-widest">Fetching ${title}...</p>
+                </div>
+            </div>
+        `;
+
+        try {
+            const response = await fetch(
+                `/api/feeds/content?url=${encodeURIComponent(url)}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${currentSession.access_token}`,
+                    },
+                },
+            );
+            const feed = await response.json();
+            renderNews(feed, url);
+        } catch (err) {
+            newsGrid.innerHTML = `<div class="col-span-full p-12 text-center text-red-500">Failed to load content for ${title}</div>`;
+        }
+    }
+
+    function renderNews(feed: any, feedUrl: string) {
+        if (!newsGrid) return;
+
+        if (!feed.items || feed.items.length === 0) {
+            newsGrid.innerHTML = `<div class="col-span-full p-20 text-center text-text-secondary">No articles found in this feed.</div>`;
+            return;
+        }
+
+        newsGrid.innerHTML = feed.items
+            .map((item: any) => {
+                const itemFeedUrl =
+                    feedUrl === "all" ? item.feedUrl || "" : feedUrl;
+                return `
+            <a href="/preview?url=${encodeURIComponent(item.link)}&feedUrl=${encodeURIComponent(itemFeedUrl)}" class="news-card group flex flex-col no-underline border-b-[3px] border-text-primary border-r-[3px] nth-[3n]:border-r-0">
+                <div class="card-image-container p-4 pb-0">
+                    <div class="aspect-16/10 overflow-hidden bg-bg-secondary rounded-sm">
+                        <img 
+                            src="${item.imageUrl || `https://placehold.co/600x375/cec7c0/2e2522?text=${encodeURIComponent(item.title)}&font=serif`}" 
+                            alt="${item.title}" 
+                            class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                            loading="lazy"
+                        />
+                    </div>
+                </div>
+                <div class="p-4 pt-3 flex flex-col flex-1">
+                    <h2 class="card-title text-lg font-bold text-text-primary leading-snug mb-4 group-hover:opacity-70 transition-opacity line-clamp-3">
+                        ${item.title}
+                    </h2>
+                    <div class="flex items-center justify-between text-sm text-text-secondary mt-auto">
+                        <div class="flex items-center gap-2">
+                            <span class="font-medium text-text-primary text-xs">${item.feedTitle || feed.title || "Feed"}</span>
+                            <span class="text-xs">▪</span>
+                            <time class="text-xs">${new Date(item.pubDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</time>
+                        </div>
+                        <span class="w-6 h-6 flex items-center justify-center rounded-full border border-text-secondary/30 text-text-secondary group-hover:border-text-primary group-hover:text-text-primary transition-colors text-xs">↗</span>
+                    </div>
+                </div>
+            </a>
+        `;
+            })
+            .join("");
+    }
+
+    function updateTabsUI(activeUrl: string) {
+        const btns = document.querySelectorAll(".tab-btn");
+        btns.forEach((btn) => {
+            if ((btn as HTMLElement).dataset.url === activeUrl) {
+                btn.classList.remove("text-text-secondary");
+                btn.classList.add(
+                    "text-text-primary",
+                    "border-b-[3px]",
+                    "border-text-primary",
+                );
+            } else {
+                btn.classList.remove(
+                    "text-text-primary",
+                    "border-b-[3px]",
+                    "border-text-primary",
+                );
+                btn.classList.add("text-text-secondary");
+            }
+        });
+    }
+
+    // --- Event Listeners ---
+
+    window.addEventListener("feed-added", () => {
+        loadSubscriptions();
+    });
+
+    window.addEventListener("feed-favorite-toggled", () => {
+        loadSubscriptions();
+    });
+
+    window.addEventListener("select-feed", (e: any) => {
+        const { url, title } = e.detail;
+        loadFeed(url, title);
+    });
+
+    window.addEventListener("feed-action", (e: any) => {
+        const { action } = e.detail;
+        if (action === "refresh") {
+            loadFeed(currentFeedUrl, "Refreshing...");
+        } else if (action.startsWith("view-")) {
+            const mode = action.replace("view-", "");
+            setViewMode(mode);
+        }
+    });
+
+    function setViewMode(mode: string) {
+        viewMode = mode;
+        newsGrid?.classList.remove("view-cards", "view-list", "view-compact");
+        newsGrid?.classList.add(`view-${mode}`);
+
+        if (mode === "list") {
+            newsGrid?.classList.remove(
+                "grid-cols-1",
+                "md:grid-cols-2",
+                "lg:grid-cols-3",
+            );
+            newsGrid?.classList.add("grid-cols-1");
+        } else if (mode === "cards") {
+            newsGrid?.classList.add(
+                "grid-cols-1",
+                "md:grid-cols-2",
+                "lg:grid-cols-3",
+            );
+            newsGrid?.classList.remove("grid-cols-1");
+        }
+    }
+
+    // Start
+    init();
 </script>
+
+<style is:global>
+    /* View Mode: List */
+    .view-list .news-card {
+        flex-direction: row;
+        height: 120px;
+        border-right: none !important;
+    }
+    .view-list .card-image-container {
+        width: 180px;
+        padding: 10px !important;
+    }
+    .view-list .card-title {
+        font-size: 1rem;
+        margin-bottom: 0.5rem;
+    }
+
+    /* View Mode: Compact */
+    .view-compact .news-card {
+        border-right: none !important;
+        padding: 8px 40px;
+    }
+    .view-compact .card-image-container {
+        display: none;
+    }
+    .view-compact .card-title {
+        font-size: 0.9rem;
+        margin-bottom: 2px;
+    }
+</style>

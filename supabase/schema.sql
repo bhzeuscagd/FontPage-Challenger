@@ -66,6 +66,7 @@ create table public.feed_subscriptions (
   feed_id uuid references public.feeds(id) on delete cascade not null,
   category_id uuid references public.categories(id) on delete set null,
   custom_title text, -- User can rename the feed
+  is_favorite boolean default false,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null,
   unique(user_id, feed_id)
 );

@@ -1,0 +1,154 @@
+---
+import Icon from "./Icon.astro";
+---
+
+<div
+    id="add-feed-modal"
+    class="fixed inset-0 z-10000 hidden items-center justify-center p-6 bg-black/50 backdrop-blur-sm transition-opacity duration-300 opacity-0"
+>
+    <div
+        class="bg-bg-primary border-[3px] border-text-primary w-full max-w-lg shadow-[8px_8px_0px_0px_rgba(36,30,30,1)] dark:shadow-[8px_8px_0px_0px_rgba(245,245,245,0.2)]"
+    >
+        <!-- Modal Header -->
+        <div
+            class="flex items-center justify-between p-6 border-b-[3px] border-text-primary"
+        >
+            <h2 class="text-3xl font-serif font-bold">Add New Feed</h2>
+            <button
+                id="close-modal"
+                class="text-text-primary hover:opacity-70 transition-opacity cursor-pointer p-1"
+                aria-label="Close modal"
+            >
+                <Icon name="X" size={24} />
+            </button>
+        </div>
+
+        <!-- Modal body -->
+        <div class="p-6">
+            <form id="add-feed-form" class="flex flex-col gap-6">
+                <div class="flex flex-col gap-2">
+                    <label
+                        for="feed-url"
+                        class="text-xs font-mono uppercase text-text-secondary opacity-60"
+                        >Feed URL</label
+                    >
+                    <input
+                        type="url"
+                        id="feed-url"
+                        name="url"
+                        placeholder="https://example.com/rss.xml"
+                        required
+                        class="bg-bg-secondary border-[3px] border-text-primary p-3 font-sans text-lg focus:outline-none focus:bg-bg-primary transition-colors"
+                    />
+                    <p id="error-message" class="text-red-500 text-sm hidden">
+                    </p>
+                </div>
+
+                <button
+                    type="submit"
+                    id="submit-feed"
+                    class="bg-text-primary text-bg-primary font-bold py-4 text-xl hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                    Add Subscription
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    import { supabase } from "../lib/supabase";
+
+    const modal = document.getElementById("add-feed-modal");
+    const closeBtn = document.getElementById("close-modal");
+    const form = document.getElementById("add-feed-form") as HTMLFormElement;
+    const submitBtn = document.getElementById(
+        "submit-feed",
+    ) as HTMLButtonElement;
+    const urlInput = document.getElementById("feed-url") as HTMLInputElement;
+    const errorMessage = document.getElementById("error-message");
+
+    // Show modal function
+    window.addEventListener("open-add-feed-modal", () => {
+        modal?.classList.remove("hidden");
+        modal?.classList.add("flex");
+        setTimeout(() => modal?.classList.add("opacity-100"), 10);
+        urlInput?.focus();
+    });
+
+    // Close modal function
+    const closeModal = () => {
+        modal?.classList.remove("opacity-100");
+        setTimeout(() => {
+            modal?.classList.add("hidden");
+            modal?.classList.remove("flex");
+            form?.reset();
+            errorMessage?.classList.add("hidden");
+        }, 300);
+    };
+
+    closeBtn?.addEventListener("click", closeModal);
+    modal?.addEventListener("click", (e) => {
+        if (e.target === modal) closeModal();
+    });
+
+    // Form submission
+    form?.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const url = urlInput.value.trim();
+        if (!url) return;
+
+        submitBtn.disabled = true;
+        submitBtn.textContent = "Validating...";
+        errorMessage?.classList.add("hidden");
+
+        try {
+            const {
+                data: { session },
+            } = await supabase.auth.getSession();
+
+            if (!session) {
+                window.location.href = "/login";
+                return;
+            }
+
+            const response = await fetch("/api/feeds/add", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${session.access_token}`,
+                },
+                body: JSON.stringify({ url }),
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                throw new Error(result.error || "Failed to add feed");
+            }
+
+            // Success!
+            closeModal();
+            // Dispatch event to refresh dashboard or show toast
+            window.dispatchEvent(
+                new CustomEvent("feed-added", { detail: result }),
+            );
+
+            // Temporary: Reload to show new items (we'll make this smoother later)
+            window.location.reload();
+        } catch (err) {
+            if (errorMessage) {
+                errorMessage.textContent =
+                    err instanceof Error ? err.message : "An error occurred";
+                if (err && typeof err === "object" && "details" in err) {
+                    errorMessage.textContent += ` (${(err as any).details})`;
+                }
+                errorMessage.classList.remove("hidden");
+            }
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.textContent = "Add Subscription";
+        }
+    });
+</script>
