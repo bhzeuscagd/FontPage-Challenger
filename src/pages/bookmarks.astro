@@ -327,7 +327,7 @@ import FeedActionsMenu from "../components/FeedActionsMenu.astro";
                 data-guid="${item.guid}"
             >
                 <a href="/preview?url=${encodeURIComponent(item.link)}&feedUrl=${encodeURIComponent(item.feedUrl)}" class="flex flex-col flex-1 no-underline">
-                    <div class="card-image-container p-4 pb-0">
+                    <div class="card-image-container p-5 pb-0">
                         <div class="aspect-16/10 overflow-hidden bg-bg-secondary rounded-sm">
                             <img 
                                 src="${item.imageUrl || `https://placehold.co/600x375/cec7c0/2e2522?text=${encodeURIComponent(item.title)}&font=serif`}" 
@@ -337,15 +337,15 @@ import FeedActionsMenu from "../components/FeedActionsMenu.astro";
                             />
                         </div>
                     </div>
-                    <div class="p-4 pt-3 flex flex-col flex-1">
-                        <h2 class="card-title text-lg font-bold text-text-primary leading-snug mb-4 group-hover:opacity-70 transition-opacity line-clamp-3">
+                    <div class="p-5 pt-4 flex flex-col flex-1">
+                        <h2 class="card-title text-xl font-serif font-bold text-text-primary leading-snug mb-4 group-hover:opacity-70 transition-opacity line-clamp-3">
                             ${item.title}
                         </h2>
                         <div class="card-meta flex items-center justify-between text-sm text-text-secondary mt-auto">
                             <div class="flex items-center gap-2">
-                                <span class="font-medium text-text-primary text-xs">${item.feedTitle}</span>
-                                <span class="text-xs">▪</span>
-                                <time class="text-xs">${new Date(item.pubDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</time>
+                                <span class="font-medium text-text-primary text-sm">${item.feedTitle}</span>
+                                <span class="text-sm">▪</span>
+                                <time class="text-sm">${new Date(item.pubDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</time>
                             </div>
                         </div>
                     </div>
