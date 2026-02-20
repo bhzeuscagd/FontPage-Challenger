@@ -391,13 +391,67 @@ const currentPath = Astro.url.pathname;
   loadSidebarSubs();
 </script>
 
-<style>
-  .sidebar-collapsed .sidebar-label {
-    width: 0 !important;
-    opacity: 0 !important;
+<style is:global>
+  /* Global overrides for collapsed state to handle dynamic elements */
+  #app-sidebar.sidebar-collapsed {
+    width: 64px !important;
+    align-items: center;
+  }
+
+  .sidebar-collapsed .sidebar-label,
+  .sidebar-collapsed .unread-badge,
+  .sidebar-collapsed .fav-toggle,
+  .sidebar-collapsed .sidebar-icon-collapse,
+  .sidebar-collapsed #refresh-subs {
+    display: none !important;
+  }
+
+  /* Center Logo */
+  .sidebar-collapsed .px-6 {
     padding: 0 !important;
+    display: flex !important;
+    justify-content: center !important;
+    width: 100%;
+  }
+
+  /* Center Menu items and Subscriptions */
+  .sidebar-collapsed .px-3,
+  .sidebar-collapsed .p-3 {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    width: 100%;
+  }
+
+  .sidebar-collapsed .sidebar-link,
+  .sidebar-collapsed li,
+  .sidebar-collapsed #sidebar-toggle {
+    display: flex !important;
+    justify-content: center !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
     margin: 0 !important;
-    pointer-events: none;
-    overflow: hidden;
+    gap: 0 !important;
+  }
+
+  .sidebar-collapsed .mx-6 {
+    margin: 8px auto !important;
+    width: 32px !important;
+  }
+
+  /* Center user avatar area */
+  .sidebar-collapsed .group.flex.items-center {
+    justify-content: center !important;
+    padding: 8px 0 !important;
+  }
+
+  .sidebar-collapsed .shrink-0 {
+    margin: 0 auto !important;
+  }
+
+  /* Handle Icon Component internal alignment */
+  .sidebar-collapsed .sidebar-link svg,
+  .sidebar-collapsed #sidebar-toggle svg,
+  .sidebar-collapsed li svg {
+    margin: 0 auto !important;
   }
 </style>

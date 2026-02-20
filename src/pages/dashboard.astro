@@ -118,17 +118,38 @@ import FeedActionsMenu from "../components/FeedActionsMenu.astro";
             btn.dataset.url = sub.feeds.url;
 
             btn.addEventListener("click", () => {
-                loadFeed(sub.feeds.url, title);
+                loadFeed(sub.feeds.url, title, sub.id);
             });
 
             subsContainer.appendChild(btn);
         });
     }
 
-    async function loadFeed(url: string, title: string) {
+    async function loadFeed(
+        url: string,
+        title: string,
+        subscriptionId?: string,
+    ) {
         if (!newsGrid) return;
         currentFeedUrl = url;
         updateTabsUI(url);
+
+        // Mark as read if subscription ID is present
+        if (subscriptionId) {
+            try {
+                fetch("/api/feeds/mark-read", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${currentSession.access_token}`,
+                    },
+                    body: JSON.stringify({ subscriptionId }),
+                });
+                window.dispatchEvent(new CustomEvent("unread-counts-changed"));
+            } catch (err) {
+                console.error(err);
+            }
+        }
 
         newsGrid.innerHTML = `
             <div class="col-span-full flex items-center justify-center p-20 text-text-secondary opacity-50">
@@ -230,8 +251,8 @@ import FeedActionsMenu from "../components/FeedActionsMenu.astro";
     });
 
     window.addEventListener("select-feed", (e: any) => {
-        const { url, title } = e.detail;
-        loadFeed(url, title);
+        const { url, title, subscriptionId } = e.detail;
+        loadFeed(url, title, subscriptionId);
     });
 
     window.addEventListener("feed-action", (e: any) => {
