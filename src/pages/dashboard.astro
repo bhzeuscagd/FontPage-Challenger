@@ -4,33 +4,58 @@ import Icon from "../components/Icon.astro";
 import AddFeedModal from "../components/AddFeedModal.astro";
 import FeedActionsMenu from "../components/FeedActionsMenu.astro";
 import DashboardEmptyState from "../components/DashboardEmptyState.astro";
+import { useTranslations, defaultLang } from "../i18n/ui";
+
+const langCookie = Astro.cookies.get("lang")?.value;
+const lang =
+    langCookie === "es" || langCookie === "en" ? langCookie : defaultLang;
+const t = useTranslations(lang);
 ---
 
-<AppLayout title="Dashboard - Frontpage">
-    <div class="mt-25 pl-10">
-        <h1 class="text-6xl font-serif text-text-primary">News</h1>
+<AppLayout
+    title={`${t("dashboard.title")} - Frontpage`}
+    description="Your personal news dashboard. Stay up to date with the latest from your favorite sources."
+    type="WebApplication"
+    lang={lang}
+>
+    <div class="mt-16 md:mt-24 px-6 md:px-12 lg:px-16 mb-6">
+        <h1
+            class="text-7xl md:text-8xl lg:text-[7.5rem] font-serif text-text-primary tracking-tighter leading-none"
+        >
+            {t("dashboard.title")}
+        </h1>
     </div>
 
     <!-- Subscriptions filter tabs -->
-    <div class="flex items-center gap-6 pb-4 pl-10">
-        <span class="text-xs font-mono uppercase text-text-secondary opacity-60"
-            >Favorites</span
+    <div
+        class="flex items-baseline md:gap-8 pb-3 px-6 md:px-12 lg:px-16 relative w-full max-w-[1920px] mx-auto"
+    >
+        <div
+            class="flex items-baseline gap-5 md:gap-8 overflow-x-auto flex-1 pb-1"
         >
-        <div id="subs-tabs" class="flex items-center gap-6">
-            <button
-                class="tab-btn text-xl font-medium text-text-primary border-b-[3px] border-text-primary pb-1"
-                data-url="all">All</button
+            <span
+                class="text-[10px] md:text-[11px] font-mono uppercase tracking-[0.2em] text-text-secondary opacity-70 shrink-0 mr-2 md:mr-0"
+                >{t("dashboard.favorites")}</span
             >
-            <!-- Dynamic favorite tabs will be injected here -->
+            <div
+                id="subs-tabs"
+                class="flex items-baseline gap-5 md:gap-8 shrink-0"
+            >
+                <button
+                    class="tab-btn text-xl md:text-2xl font-sans text-text-primary border-b-2 border-text-primary pb-1.5 whitespace-nowrap transition-colors"
+                    data-url="all">{t("dashboard.all")}</button
+                >
+                <!-- Dynamic favorite tabs will be injected here -->
+            </div>
         </div>
 
-        <div class="ml-auto pr-10">
+        <div class="shrink-0 ml-4 relative z-10 hidden sm:block">
             <FeedActionsMenu />
         </div>
     </div>
 
-    <!-- Thick horizontal line under tabs -->
-    <div class="h-[3px] bg-text-primary mb-0"></div>
+    <!-- Very subtle horizontal line under tabs -->
+    <div class="h-px bg-text-primary/15 mb-0 max-w-[1920px] mx-auto"></div>
 
     <!-- 3-Column News Grid -->
     <div
@@ -46,7 +71,7 @@ import DashboardEmptyState from "../components/DashboardEmptyState.astro";
                 >
                 </div>
                 <p class="font-mono text-sm uppercase tracking-widest">
-                    Loading news...
+                    {t("dashboard.loading")}
                 </p>
             </div>
         </div>
@@ -105,9 +130,19 @@ import DashboardEmptyState from "../components/DashboardEmptyState.astro";
 
     async function init() {
         const params = new URLSearchParams(window.location.search);
-        isGuest = params.get("guest") === "true";
+        isGuest =
+            params.get("guest") === "true" ||
+            localStorage.getItem("frontpage_guest") === "true";
 
         if (isGuest) {
+            if (params.get("guest") === "true") {
+                localStorage.setItem("frontpage_guest", "true");
+                window.history.replaceState(
+                    {},
+                    document.title,
+                    window.location.pathname,
+                );
+            }
             currentSession = { guest: true };
             if (userInfo) userInfo.textContent = "Guest User";
             loadSubscriptions(); // Sync call for guest
@@ -200,7 +235,7 @@ import DashboardEmptyState from "../components/DashboardEmptyState.astro";
         // Always recreate the All button
         const allBtn = document.createElement("button");
         allBtn.className =
-            "tab-btn text-xl font-medium text-text-primary border-b-[3px] border-text-primary pb-1";
+            "tab-btn text-xl md:text-2xl font-sans text-text-primary border-b-2 border-text-primary pb-1.5 whitespace-nowrap transition-colors";
         allBtn.textContent = "All";
         allBtn.dataset.url = "all";
         allBtn.addEventListener("click", () => {
@@ -217,7 +252,7 @@ import DashboardEmptyState from "../components/DashboardEmptyState.astro";
             const btn = document.createElement("button");
             const title = sub.custom_title || sub.feeds.title;
             btn.className =
-                "tab-btn text-xl font-medium text-text-secondary hover:text-text-primary transition-colors pb-1 relative";
+                "tab-btn text-xl md:text-2xl font-sans text-text-secondary hover:text-text-primary border-b-2 border-transparent hover:border-text-primary/30 pb-1.5 whitespace-nowrap transition-colors relative";
             btn.textContent = title;
             btn.dataset.url = sub.feeds.url;
 
@@ -436,19 +471,22 @@ import DashboardEmptyState from "../components/DashboardEmptyState.astro";
         const btns = document.querySelectorAll(".tab-btn");
         btns.forEach((btn) => {
             if ((btn as HTMLElement).dataset.url === activeUrl) {
-                btn.classList.remove("text-text-secondary");
-                btn.classList.add(
-                    "text-text-primary",
-                    "border-b-[3px]",
-                    "border-text-primary",
+                btn.classList.remove(
+                    "text-text-secondary",
+                    "border-transparent",
+                    "hover:border-text-primary/30",
                 );
+                btn.classList.add("text-text-primary", "border-text-primary");
             } else {
                 btn.classList.remove(
                     "text-text-primary",
-                    "border-b-[3px]",
                     "border-text-primary",
                 );
-                btn.classList.add("text-text-secondary");
+                btn.classList.add(
+                    "text-text-secondary",
+                    "border-transparent",
+                    "hover:border-text-primary/30",
+                );
             }
         });
     }

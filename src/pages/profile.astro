@@ -1,0 +1,422 @@
+---
+import AppLayout from "../layouts/AppLayout.astro";
+import { useTranslations, defaultLang } from "../i18n/ui";
+
+const langCookie = Astro.cookies.get("lang")?.value;
+const lang =
+    langCookie === "es" || langCookie === "en" ? langCookie : defaultLang;
+const t = useTranslations(lang);
+---
+
+<AppLayout title={`${t("profile.title")} - Frontpage`} lang={lang}>
+    <div class="mt-25 pl-10 pr-10">
+        <h1 class="text-6xl font-serif text-text-primary">
+            {t("profile.title")}
+        </h1>
+    </div>
+
+    <div class="flex items-center gap-6 pb-4 pl-10 pr-10">
+        <span class="text-xs font-mono uppercase text-text-secondary opacity-60"
+            >{t("profile.subtitle")}</span
+        >
+    </div>
+
+    <div class="h-[3px] bg-text-primary mb-0"></div>
+
+    <div class="max-w-3xl mx-auto p-10 space-y-12 pb-24">
+        <!-- Account Details Section -->
+        <section>
+            <div class="flex items-center justify-between mb-6">
+                <div>
+                    <h2 class="text-2xl font-serif font-bold text-text-primary">
+                        {t("profile.details")}
+                    </h2>
+                    <p class="text-sm text-text-secondary opacity-60 mt-1">
+                        {t("profile.email_desc")}
+                    </p>
+                </div>
+            </div>
+
+            <div
+                class="bg-bg-secondary border border-text-primary/10 p-6 flex flex-col gap-6"
+            >
+                <!-- Avatar UI -->
+                <div class="flex items-center gap-6">
+                    <img
+                        id="profile-avatar"
+                        src="https://api.dicebear.com/9.x/shapes/svg?seed=frontpage"
+                        class="w-16 h-16 rounded-full bg-surface border border-text-primary/10 object-cover"
+                        alt="Avatar"
+                    />
+                    <div class="flex-1">
+                        <label
+                            for="avatar-url"
+                            class="block text-sm font-medium text-text-primary mb-2"
+                            >{t("profile.avatar_label")}</label
+                        >
+                        <div class="flex gap-2">
+                            <input
+                                id="avatar-url"
+                                type="url"
+                                placeholder={t("profile.avatar_ph")}
+                                class="w-full bg-bg-primary border border-text-primary/10 px-4 py-2 text-sm text-text-primary placeholder:text-text-secondary/40 focus:outline-none focus:border-text-primary/30 transition-colors"
+                            />
+                            <button
+                                id="update-avatar-btn"
+                                class="px-4 py-2 bg-text-primary text-bg-primary text-sm font-medium hover:opacity-90 transition-opacity whitespace-nowrap"
+                                >{t("profile.avatar_btn")}</button
+                            >
+                        </div>
+                        <p id="avatar-status" class="mt-2 text-sm hidden"></p>
+                    </div>
+                </div>
+
+                <div>
+                    <span
+                        class="text-xs font-mono tracking-widest uppercase text-text-secondary opacity-50"
+                        >{t("profile.name_label")}</span
+                    >
+                    <span
+                        id="profile-name"
+                        class="block text-lg font-medium text-text-primary mt-1 mb-4"
+                        >...</span
+                    >
+                    <span
+                        class="text-xs font-mono tracking-widest uppercase text-text-secondary opacity-50"
+                        >{t("profile.email_label")}</span
+                    >
+                    <span
+                        id="profile-email"
+                        class="block text-lg font-medium text-text-primary mt-1"
+                        >...</span
+                    >
+                </div>
+
+                <!-- Username Update -->
+                <div class="mt-4 pt-4 border-t border-text-primary/10">
+                    <label
+                        for="new-username"
+                        class="block text-sm font-medium text-text-primary mb-2"
+                        >{t("profile.name_label")}</label
+                    >
+                    <div class="flex gap-2">
+                        <input
+                            id="new-username"
+                            type="text"
+                            placeholder={t("profile.name_ph")}
+                            class="w-full bg-bg-primary border border-text-primary/10 px-4 py-2 text-sm text-text-primary placeholder:text-text-secondary/40 focus:outline-none focus:border-text-primary/30 transition-colors"
+                        />
+                        <button
+                            id="update-username-btn"
+                            class="px-4 py-2 bg-text-primary text-bg-primary text-sm font-medium hover:opacity-90 transition-opacity whitespace-nowrap"
+                            >{t("profile.name_btn")}</button
+                        >
+                    </div>
+                    <p id="username-status" class="mt-2 text-sm hidden"></p>
+                </div>
+
+                <!-- Email Update -->
+                <div class="mt-4 pt-4 border-t border-text-primary/10">
+                    <label
+                        for="new-email"
+                        class="block text-sm font-medium text-text-primary mb-2"
+                        >Change Email</label
+                    >
+                    <div class="flex gap-2">
+                        <input
+                            id="new-email"
+                            type="email"
+                            placeholder="new@example.com"
+                            class="w-full bg-bg-primary border border-text-primary/10 px-4 py-2 text-sm text-text-primary placeholder:text-text-secondary/40 focus:outline-none focus:border-text-primary/30 transition-colors"
+                        />
+                        <button
+                            id="update-email-btn"
+                            class="px-4 py-2 bg-text-primary text-bg-primary text-sm font-medium hover:opacity-90 transition-opacity whitespace-nowrap"
+                            >Update Email</button
+                        >
+                    </div>
+                    <p id="email-status" class="mt-2 text-sm hidden"></p>
+                </div>
+            </div>
+        </section>
+
+        <div class="h-[2px] bg-text-primary/10"></div>
+
+        <!-- Security Section -->
+        <section>
+            <div class="flex items-center justify-between mb-6">
+                <div>
+                    <h2 class="text-2xl font-serif font-bold text-text-primary">
+                        {t("profile.security")}
+                    </h2>
+                    <p class="text-sm text-text-secondary opacity-60 mt-1">
+                        {t("profile.pwd_desc")}
+                    </p>
+                </div>
+            </div>
+
+            <div
+                class="bg-bg-secondary border border-text-primary/10 p-6 flex flex-col gap-6"
+            >
+                <div>
+                    <label
+                        for="old-password"
+                        class="block text-sm font-medium text-text-primary mb-2"
+                        >{t("profile.pwd_old")}</label
+                    >
+                    <input
+                        id="old-password"
+                        type="password"
+                        class="w-full bg-bg-primary border border-text-primary/10 px-4 py-2 text-sm text-text-primary placeholder:text-text-secondary/40 focus:outline-none focus:border-text-primary/30 transition-colors"
+                    />
+                </div>
+                <div>
+                    <label
+                        for="new-password"
+                        class="block text-sm font-medium text-text-primary mb-2"
+                        >{t("profile.pwd_new")}</label
+                    >
+                    <input
+                        id="new-password"
+                        type="password"
+                        class="w-full bg-bg-primary border border-text-primary/10 px-4 py-2 text-sm text-text-primary placeholder:text-text-secondary/40 focus:outline-none focus:border-text-primary/30 transition-colors"
+                    />
+                </div>
+                <div>
+                    <label
+                        for="confirm-password"
+                        class="block text-sm font-medium text-text-primary mb-2"
+                        >{t("profile.pwd_confirm")}</label
+                    >
+                    <input
+                        id="confirm-password"
+                        type="password"
+                        class="w-full bg-bg-primary border border-text-primary/10 px-4 py-2 text-sm text-text-primary placeholder:text-text-secondary/40 focus:outline-none focus:border-text-primary/30 transition-colors"
+                    />
+                </div>
+
+                <div>
+                    <button
+                        id="update-password-btn"
+                        class="px-6 py-2 bg-text-primary text-bg-primary text-sm font-medium hover:opacity-90 transition-opacity"
+                    >
+                        {t("profile.pwd_update")}
+                    </button>
+                    <p id="password-status" class="mt-3 text-sm hidden"></p>
+                </div>
+            </div>
+        </section>
+
+        <div class="h-[2px] bg-text-primary/10"></div>
+
+        <section>
+            <h2 class="text-2xl font-serif font-bold text-text-primary mb-6">
+                {t("profile.logout")}
+            </h2>
+            <button
+                id="logout-btn"
+                class="px-6 py-2 border-[2px] border-red-500 text-red-500 text-sm font-medium hover:bg-red-500 hover:text-white transition-all cursor-pointer"
+            >
+                {t("profile.logout")}
+            </button>
+        </section>
+    </div>
+</AppLayout>
+
+<script>
+    import { supabase } from "../lib/supabase";
+
+    const emailEl = document.getElementById("profile-email")!;
+    const oldPasswordInput = document.getElementById(
+        "old-password",
+    ) as HTMLInputElement;
+    const newPasswordInput = document.getElementById(
+        "new-password",
+    ) as HTMLInputElement;
+    const confirmPasswordInput = document.getElementById(
+        "confirm-password",
+    ) as HTMLInputElement;
+    const updateBtn = document.getElementById("update-password-btn")!;
+    const statusMsg = document.getElementById("password-status")!;
+    const logoutBtn = document.getElementById("logout-btn")!;
+
+    // Avatar
+    const avatarImg = document.getElementById(
+        "profile-avatar",
+    ) as HTMLImageElement;
+    const avatarInput = document.getElementById(
+        "avatar-url",
+    ) as HTMLInputElement;
+    const updateAvatarBtn = document.getElementById("update-avatar-btn")!;
+
+    const avatarStatusMsg = document.getElementById("avatar-status")!;
+    let currentEmail = "";
+
+    async function init() {
+        const {
+            data: { session },
+        } = await supabase.auth.getSession();
+
+        if (!session) {
+            window.location.href = "/login";
+            return;
+        }
+
+        if (session.user?.email) {
+            currentEmail = session.user.email;
+            emailEl.textContent = currentEmail;
+
+            // Load custom avatar if exists
+            const customAvatar = session.user.user_metadata?.avatar_url;
+            if (customAvatar) {
+                avatarImg.src = customAvatar;
+                avatarInput.value = customAvatar;
+            } else {
+                avatarImg.src = `https://api.dicebear.com/9.x/shapes/svg?seed=${currentEmail}`;
+            }
+        }
+    }
+
+    updateAvatarBtn.addEventListener("click", async () => {
+        const url = avatarInput.value.trim();
+        if (!url) return;
+
+        updateAvatarBtn.textContent = "...";
+        avatarStatusMsg.classList.add("hidden");
+
+        const { error } = await supabase.auth.updateUser({
+            data: { avatar_url: url },
+        });
+
+        updateAvatarBtn.textContent = "Save Avatar";
+        avatarStatusMsg.classList.remove("hidden");
+
+        if (!error) {
+            avatarImg.src = url;
+            avatarStatusMsg.textContent = "Avatar updated successfully.";
+            avatarStatusMsg.className = "mt-2 text-sm text-green-500";
+        } else {
+            avatarStatusMsg.textContent = error.message;
+            avatarStatusMsg.className = "mt-2 text-sm text-red-500";
+        }
+    });
+
+    const newUsernameInput = document.getElementById(
+        "new-username",
+    ) as HTMLInputElement;
+    const updateUsernameBtn = document.getElementById("update-username-btn")!;
+    const usernameStatusMsg = document.getElementById("username-status")!;
+
+    updateUsernameBtn.addEventListener("click", async () => {
+        const name = newUsernameInput.value.trim();
+        if (!name) return;
+
+        updateUsernameBtn.textContent = "...";
+        usernameStatusMsg.classList.add("hidden");
+
+        const { error } = await supabase.auth.updateUser({
+            data: { full_name: name },
+        });
+
+        updateUsernameBtn.textContent = "Update Name";
+        usernameStatusMsg.classList.remove("hidden");
+
+        if (!error) {
+            usernameStatusMsg.textContent = "Name updated successfully.";
+            usernameStatusMsg.className = "mt-2 text-sm text-green-500";
+            const profileName = document.getElementById("profile-name");
+            if (profileName) profileName.textContent = name;
+            newUsernameInput.value = "";
+        } else {
+            usernameStatusMsg.textContent = error.message;
+            usernameStatusMsg.className = "mt-2 text-sm text-red-500";
+        }
+    });
+
+    const newEmailInput = document.getElementById(
+        "new-email",
+    ) as HTMLInputElement;
+    const updateEmailBtn = document.getElementById("update-email-btn")!;
+    const emailStatusMsg = document.getElementById("email-status")!;
+
+    updateEmailBtn.addEventListener("click", async () => {
+        const email = newEmailInput.value.trim();
+        if (!email) return;
+
+        updateEmailBtn.textContent = "...";
+        emailStatusMsg.classList.add("hidden");
+
+        const { error } = await supabase.auth.updateUser({ email });
+
+        updateEmailBtn.textContent = "Update Email";
+        emailStatusMsg.classList.remove("hidden");
+
+        if (!error) {
+            emailStatusMsg.textContent =
+                "Confirmation link sent to both old and new addresses.";
+            emailStatusMsg.className = "mt-2 text-sm text-green-500";
+            newEmailInput.value = "";
+        } else {
+            emailStatusMsg.textContent = error.message;
+            emailStatusMsg.className = "mt-2 text-sm text-red-500";
+        }
+    });
+
+    updateBtn.addEventListener("click", async () => {
+        const oldP = oldPasswordInput.value.trim();
+        const newP = newPasswordInput.value.trim();
+        const confP = confirmPasswordInput.value.trim();
+
+        if (!oldP || !newP || !confP) {
+            statusMsg.textContent = "Please fill in all password fields.";
+            statusMsg.className = "mt-3 text-sm text-red-500";
+            return;
+        }
+
+        if (newP !== confP) {
+            statusMsg.textContent = "New passwords do not match.";
+            statusMsg.className = "mt-3 text-sm text-red-500";
+            return;
+        }
+
+        updateBtn.textContent = "...";
+        statusMsg.classList.add("hidden");
+
+        // First verify old password by attempting a login
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+            email: currentEmail,
+            password: oldP,
+        });
+
+        if (signInError) {
+            updateBtn.textContent = "Update Password";
+            statusMsg.textContent = "Current password is incorrect.";
+            statusMsg.className = "mt-3 text-sm text-red-500";
+            return;
+        }
+
+        // Proceed to update password
+        const { error } = await supabase.auth.updateUser({ password: newP });
+
+        updateBtn.textContent = "Update Password";
+        statusMsg.classList.remove("hidden");
+
+        if (error) {
+            statusMsg.textContent = error.message;
+            statusMsg.className = "mt-3 text-sm text-red-500";
+        } else {
+            statusMsg.textContent = "Password updated successfully.";
+            statusMsg.className = "mt-3 text-sm text-green-500";
+            oldPasswordInput.value = "";
+            newPasswordInput.value = "";
+            confirmPasswordInput.value = "";
+        }
+    });
+
+    logoutBtn.addEventListener("click", async () => {
+        await supabase.auth.signOut();
+        window.location.href = "/login";
+    });
+
+    init();
+</script>

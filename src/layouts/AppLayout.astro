@@ -3,6 +3,7 @@ import "../styles/global.css";
 import Fonts from "../components/Fonts.astro";
 import Sidebar from "../components/Sidebar.astro";
 import ThemeToggle from "../components/ThemeToggle.astro";
+import LanguageToggle from "../components/LanguageToggle.astro";
 
 interface Props {
     title: string;
@@ -11,6 +12,7 @@ interface Props {
     url?: string;
     type?: string;
     author?: string;
+    lang?: string;
 }
 
 const {
@@ -20,13 +22,30 @@ const {
     url,
     type = "website",
     author,
+    lang = "en",
 } = Astro.props;
 
-const canonicalUrl = url || Astro.url.href;
+const canonicalUrl = new URL(
+    url || Astro.url.pathname,
+    Astro.site || "https://frontpage.app",
+);
+
+// JSON-LD Schema
+const schemaValue = {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    name: "Frontpage",
+    applicationCategory: "NewsApplication",
+    offers: {
+        "@type": "Offer",
+        price: "0",
+        priceCurrency: "USD",
+    },
+};
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang={lang}>
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width" />
@@ -45,7 +64,14 @@ const canonicalUrl = url || Astro.url.href;
         <meta property="og:description" content={description} />
         <meta property="og:type" content={type} />
         <meta property="og:url" content={canonicalUrl} />
-        {image && <meta property="og:image" content={image} />}
+        {
+            image && (
+                <meta
+                    property="og:image"
+                    content={new URL(image, canonicalUrl)}
+                />
+            )
+        }
         <meta property="og:site_name" content="Frontpage" />
 
         <!-- Twitter Card -->
@@ -55,7 +81,20 @@ const canonicalUrl = url || Astro.url.href;
         />
         <meta name="twitter:title" content={title} />
         <meta name="twitter:description" content={description} />
-        {image && <meta name="twitter:image" content={image} />}
+        {
+            image && (
+                <meta
+                    name="twitter:image"
+                    content={new URL(image, canonicalUrl)}
+                />
+            )
+        }
+
+        <!-- JSON-LD -->
+        <script
+            type="application/ld+json"
+            set:html={JSON.stringify(schemaValue)}
+        />
 
         <script is:inline>
             (function () {
@@ -82,5 +121,6 @@ const canonicalUrl = url || Astro.url.href;
             </div>
         </main>
         <ThemeToggle />
+        <LanguageToggle />
     </body>
 </html>

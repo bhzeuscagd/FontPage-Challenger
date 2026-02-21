@@ -1,22 +1,33 @@
 ---
 import AppLayout from "../layouts/AppLayout.astro";
 import Icon from "../components/Icon.astro";
+import { useTranslations, defaultLang } from "../i18n/ui";
+
+const langCookie = Astro.cookies.get("lang")?.value;
+const lang =
+    langCookie === "es" || langCookie === "en" ? langCookie : defaultLang;
+const t = useTranslations(lang);
 ---
 
-<AppLayout title="My Feeds - Frontpage">
-    <div class="px-8 py-12 max-w-7xl mx-auto">
+<AppLayout
+    title={`${t("feeds.title")} - Frontpage`}
+    description="Manage your subscribed feeds, organize categories, and tune your automated news aggregator."
+    type="WebApplication"
+    lang={lang}
+>
+    <div class="mt-25 pl-10 pr-10 md:pr-16 max-w-7xl mx-auto">
         <div
             class="flex items-center justify-between mb-12 border-b border-text-primary pb-6"
         >
             <h1 class="font-serif text-5xl text-text-primary">
-                My Subscriptions
+                {t("feeds.title")}
             </h1>
             <div class="flex gap-4">
                 <button
                     class="flex items-center gap-2 px-4 py-2 border border-text-primary/20 text-xs font-mono uppercase tracking-widest hover:bg-text-primary hover:text-bg-primary transition-all"
                 >
                     <Icon name="Plus" size={14} />
-                    Add Feed
+                    {t("feeds.add")}
                 </button>
             </div>
         </div>
@@ -25,8 +36,29 @@ import Icon from "../components/Icon.astro";
             class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 opacity-50 italic font-serif text-xl py-24 text-center"
         >
             <p class="col-span-full">
-                "Subscription management is coming soon..."
+                {t("feeds.empty")}
             </p>
         </div>
     </div>
 </AppLayout>
+
+<script>
+    import { supabase } from "../lib/supabase";
+
+    async function checkAuth() {
+        const params = new URLSearchParams(window.location.search);
+        const isGuest =
+            params.get("guest") === "true" ||
+            localStorage.getItem("frontpage_guest") === "true";
+        if (isGuest) return;
+
+        const {
+            data: { session },
+        } = await supabase.auth.getSession();
+        if (!session) {
+            window.location.href = "/login";
+        }
+    }
+
+    checkAuth();
+</script>

@@ -2,11 +2,24 @@
 import AppLayout from "../layouts/AppLayout.astro";
 import Icon from "../components/Icon.astro";
 import FeedActionsMenu from "../components/FeedActionsMenu.astro";
+import { useTranslations, defaultLang } from "../i18n/ui";
+
+const langCookie = Astro.cookies.get("lang")?.value;
+const lang =
+    langCookie === "es" || langCookie === "en" ? langCookie : defaultLang;
+const t = useTranslations(lang);
 ---
 
-<AppLayout title="Saved - Frontpage">
+<AppLayout
+    title={`${t("bookmarks.title")} - Frontpage`}
+    description="Your saved articles and bookmarks. Read your favorite tech news later."
+    type="WebApplication"
+    lang={lang}
+>
     <div class="mt-25 pl-10">
-        <h1 class="text-6xl font-serif text-text-primary">Saved</h1>
+        <h1 class="text-6xl font-serif text-text-primary">
+            {t("bookmarks.title")}
+        </h1>
     </div>
 
     <!-- Subscriptions filter tabs -->
@@ -52,7 +65,7 @@ import FeedActionsMenu from "../components/FeedActionsMenu.astro";
         <div id="saved-tabs" class="flex items-center gap-6">
             <button
                 class="tab-btn text-xl font-medium text-text-primary border-b-[3px] border-text-primary pb-1"
-                data-filter="all">All</button
+                data-filter="all">{t("dashboard.all")}</button
             >
             <!-- Favorite source tabs will be injected here -->
         </div>
@@ -79,7 +92,7 @@ import FeedActionsMenu from "../components/FeedActionsMenu.astro";
                 >
                 </div>
                 <p class="font-mono text-sm uppercase tracking-widest">
-                    Loading saved articles...
+                    {t("bookmarks.loading")}
                 </p>
             </div>
         </div>
@@ -119,6 +132,14 @@ import FeedActionsMenu from "../components/FeedActionsMenu.astro";
     }
 
     async function init() {
+        const isGuest = localStorage.getItem("frontpage_guest") === "true";
+        if (isGuest) {
+            currentSession = { guest: true };
+            if (newsGrid)
+                newsGrid.innerHTML = `<div class="col-span-full py-12 text-center text-text-secondary">Guest mode: Please sign in to save bookmarks.</div>`;
+            return;
+        }
+
         const {
             data: { session },
         } = await supabase.auth.getSession();

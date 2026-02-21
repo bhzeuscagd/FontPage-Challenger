@@ -1,0 +1,130 @@
+---
+import { useTranslations, defaultLang } from "../i18n/ui";
+
+const langCookie = Astro.cookies.get("lang")?.value;
+const lang =
+    langCookie === "es" || langCookie === "en" ? langCookie : defaultLang;
+const t = useTranslations(lang);
+
+const currentYear = new Date().getFullYear();
+---
+
+<footer
+    class="bg-bg-primary text-text-primary px-6 md:px-12 py-16 md:py-24 border-t border-text-primary/10 overflow-hidden relative mt-auto"
+>
+    <div class="max-w-[1920px] mx-auto flex flex-col gap-16 md:gap-32">
+        <!-- Top Section: Legal Links & SOC2 Badge -->
+        <div
+            class="flex flex-col md:flex-row justify-between items-start md:items-end gap-12"
+        >
+            <!-- Legal Links -->
+            <nav
+                aria-label="Footer Legal Navigation"
+                class="flex flex-col sm:flex-row gap-6 md:gap-12"
+            >
+                <a
+                    href="/privacy"
+                    class="font-mono text-xs uppercase tracking-[0.2em] hover:text-accent transition-colors"
+                    >{t("footer.privacy")}</a
+                >
+                <a
+                    href="/terms"
+                    class="font-mono text-xs uppercase tracking-[0.2em] hover:text-accent transition-colors"
+                    >{t("footer.terms")}</a
+                >
+                <a
+                    href="/cookies"
+                    class="font-mono text-xs uppercase tracking-[0.2em] hover:text-accent transition-colors"
+                    >{t("footer.cookies")}</a
+                >
+            </nav>
+
+            <!-- Badge & i18n Selector -->
+            <div
+                class="flex flex-col sm:flex-row items-start sm:items-center gap-6 md:gap-8"
+            >
+                <!-- Language Selector -->
+                <div class="relative">
+                    <label for="lang-select" class="sr-only"
+                        >Choose Language</label
+                    >
+                    <select
+                        id="lang-select"
+                        class="appearance-none bg-transparent border-b border-text-primary/20 text-xs font-mono uppercase tracking-widest py-2 px-6 pr-8 focus:outline-none focus:border-text-primary cursor-pointer hover:border-text-primary/50 transition-colors"
+                    >
+                        <option value="en">EN / English</option>
+                        <option value="es">ES / Español</option>
+                    </select>
+                    <div
+                        class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-text-primary"
+                    >
+                        <svg
+                            class="fill-current h-3 w-3"
+                            aria-hidden="true"
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 20 20"
+                            ><path
+                                d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"
+                            ></path></svg
+                        >
+                    </div>
+                </div>
+
+                <!-- SOC 2 Badge Minimalist box -->
+                <div
+                    class="border border-text-primary px-5 py-3 flex items-center justify-center hover:bg-text-primary hover:text-bg-primary transition-colors cursor-default"
+                    title={t("footer.soc2")}
+                >
+                    <span
+                        class="font-mono text-[10px] md:text-xs uppercase tracking-[0.25em] font-bold"
+                        >{t("footer.soc2")}</span
+                    >
+                </div>
+            </div>
+        </div>
+
+        <!-- Massive Logo at Base -->
+        <div
+            class="flex flex-col items-center justify-center border-t border-text-primary/10 pt-16 md:pt-24 select-none"
+        >
+            <h2
+                class="font-serif text-[18vw] leading-[0.75] tracking-tighter text-text-primary text-center hover:opacity-80 transition-opacity"
+            >
+                Frontpage
+            </h2>
+            <p
+                class="font-mono text-[10px] md:text-xs text-text-secondary uppercase tracking-[0.3em] mt-12"
+            >
+                &copy; {currentYear} Frontpage Inc. {t("footer.rights")}
+            </p>
+        </div>
+    </div>
+</footer>
+
+<script>
+    // Language Selector Functionality
+    const langSelect = document.getElementById(
+        "lang-select",
+    ) as HTMLSelectElement;
+
+    if (langSelect) {
+        // Init from localStorage or current html lang
+        const savedLang = localStorage.getItem("preferred-language");
+        if (savedLang) {
+            document.documentElement.lang = savedLang;
+            langSelect.value = savedLang;
+        } else {
+            langSelect.value = document.documentElement.lang || "en";
+        }
+
+        langSelect.addEventListener("change", (e) => {
+            const newLang = (e.target as HTMLSelectElement).value;
+            // Set cookie for Astro SSR
+            document.cookie = `lang=${newLang}; path=/; max-age=31536000`;
+            localStorage.setItem("preferred-language", newLang);
+
+            // Reload to fetch translations from server
+            window.location.reload();
+        });
+    }
+</script>

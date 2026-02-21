@@ -1,5 +1,11 @@
 ---
 import Icon from "./Icon.astro";
+import { useTranslations, defaultLang } from "../i18n/ui";
+
+const langCookie = Astro.cookies.get("lang")?.value;
+const lang =
+    langCookie === "es" || langCookie === "en" ? langCookie : defaultLang;
+const t = useTranslations(lang);
 ---
 
 <!-- NAV -->
@@ -16,17 +22,17 @@ import Icon from "./Icon.astro";
             <a
                 href="#how-it-works"
                 class="relative pb-1 text-xs font-semibold font-sans tracking-wider text-text-primary uppercase no-underline transition-colors after:absolute after:bottom-0 after:left-0 after:h-[2px] after:w-0 hover:after:w-full after:bg-text-primary after:transition-all after:duration-300"
-                >How it works</a
+                >{t("nav.how_it_works")}</a
             >
             <a
                 href="#modes"
                 class="relative pb-1 text-xs font-semibold font-sans tracking-wider text-text-primary uppercase no-underline transition-colors after:absolute after:bottom-0 after:left-0 after:h-[2px] after:w-0 hover:after:w-full after:bg-text-primary after:transition-all after:duration-300"
-                >View Modes</a
+                >{t("nav.view_modes")}</a
             >
             <a
                 href="#about"
                 class="relative pb-1 text-xs font-semibold font-sans tracking-wider text-text-primary uppercase no-underline transition-colors after:absolute after:bottom-0 after:left-0 after:h-[2px] after:w-0 hover:after:w-full after:bg-text-primary after:transition-all after:duration-300"
-                >About</a
+                >{t("nav.about")}</a
             >
         </div>
         <div class="flex items-center gap-6">
@@ -34,13 +40,13 @@ import Icon from "./Icon.astro";
                 href="/login"
                 class="relative pb-1 text-xs font-semibold font-sans tracking-wider text-text-primary uppercase no-underline transition-colors after:absolute after:bottom-0 after:left-0 after:h-[2px] after:w-0 hover:after:w-full after:bg-text-primary after:transition-all after:duration-300"
             >
-                Log in
+                {t("nav.login")}
             </a>
             <a
                 href="/dashboard?guest=true"
                 class="group relative flex items-center gap-3 pb-1 text-xs font-bold font-sans tracking-wider text-text-primary uppercase no-underline after:absolute after:bottom-0 after:left-0 after:h-[2px] after:w-full hover:after:w-0 after:bg-text-primary after:transition-all after:duration-300"
             >
-                Try as guest
+                {t("nav.try_guest")}
             </a>
             <span
                 class="flex items-center justify-center bg-text-primary border border-text-primary p-1 transition-transform group-hover:scale-105"

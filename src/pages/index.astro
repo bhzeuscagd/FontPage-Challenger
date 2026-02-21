@@ -3,10 +3,36 @@ import Layout from "../layouts/Layout.astro";
 import Nav from "../components/Nav.astro";
 import Hero from "../components/Hero.astro";
 import Features from "../components/Features.astro";
+import { useTranslations, defaultLang } from "../i18n/ui";
+
+const langCookie = Astro.cookies.get("lang")?.value;
+const lang =
+	langCookie === "es" || langCookie === "en" ? langCookie : defaultLang;
+const t = useTranslations(lang);
 ---
 
-<Layout title="Frontpage — Your News, Your Rules">
-	<main class="noise-bg min-h-screen">
+<Layout
+	title="Frontpage — Your News, Your Rules"
+	description="The reader for people who care about the news. Your personal tech content aggregator."
+	type="SoftwareApplication"
+	lang="en"
+>
+	<script is:inline>
+		// Fast client-side check to prevent flash of content
+		const tokenKey = Object.keys(localStorage).find(
+			(key) => key.startsWith("sb-") && key.endsWith("-auth-token"),
+		);
+		if (tokenKey && localStorage.getItem(tokenKey)) {
+			try {
+				const data = JSON.parse(localStorage.getItem(tokenKey));
+				if (data && data.access_token) {
+					document.documentElement.style.display = "none";
+					window.location.href = "/dashboard";
+				}
+			} catch (e) {}
+		}
+	</script>
+	<div class="noise-bg min-h-screen">
 		<!-- NAV -->
 		<Nav />
 
@@ -17,93 +43,141 @@ import Features from "../components/Features.astro";
 
 		<!-- STATS / TRUST -->
 		<section
-			class="relative z-10 px-8 md:px-16 py-24 md:py-32 border-t-[3px] border-text-primary"
+			class="relative z-10 border-t-[3px] border-b-[3px] border-text-primary bg-bg-primary"
+			id="stats-section"
 		>
 			<div
-				class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-16 text-center"
+				class="grid grid-cols-1 md:grid-cols-3 divide-y-[3px] md:divide-y-0 md:divide-x-[3px] divide-text-primary text-center"
 			>
-				<div>
+				<div
+					class="py-24 md:py-32 flex flex-col items-center justify-center hover:bg-text-primary/5 transition-colors duration-500"
+				>
 					<p
-						class="font-mono text-5xl md:text-6xl font-bold text-text-primary mb-2"
+						class="stat-number opacity-0 translate-y-8 transition-all duration-1000 ease-out font-mono text-6xl md:text-8xl font-bold text-text-primary mb-4"
 					>
 						∞
 					</p>
-					<p class="font-serif text-lg text-text-secondary">
-						Feeds supported
+					<p
+						class="font-serif text-xl tracking-wide text-text-secondary uppercase"
+					>
+						{t("stats.feeds")}
 					</p>
 				</div>
-				<div>
+				<div
+					class="py-24 md:py-32 flex flex-col items-center justify-center hover:bg-text-primary/5 transition-colors duration-500"
+				>
 					<p
-						class="font-mono text-5xl md:text-6xl font-bold text-text-primary mb-2"
+						class="stat-number opacity-0 translate-y-8 transition-all duration-1000 ease-out delay-150 font-mono text-6xl md:text-8xl font-bold text-text-primary mb-4"
 					>
 						3
 					</p>
-					<p class="font-serif text-lg text-text-secondary">
-						View modes
+					<p
+						class="font-serif text-xl tracking-wide text-text-secondary uppercase"
+					>
+						{t("stats.modes")}
 					</p>
 				</div>
-				<div>
+				<div
+					class="py-24 md:py-32 flex flex-col items-center justify-center hover:bg-text-primary/5 transition-colors duration-500"
+				>
 					<p
-						class="font-mono text-5xl md:text-6xl font-bold text-text-primary mb-2"
+						class="stat-number opacity-0 translate-y-8 transition-all duration-1000 ease-out delay-300 font-mono text-6xl md:text-8xl font-bold text-text-primary mb-4"
 					>
 						0
 					</p>
-					<p class="font-serif text-lg text-text-secondary">
-						Ads & trackers
+					<p
+						class="font-serif text-xl tracking-wide text-text-secondary uppercase"
+					>
+						{t("stats.ads")}
 					</p>
 				</div>
 			</div>
+
+			<script>
+				const observer = new IntersectionObserver(
+					(entries) => {
+						entries.forEach((entry) => {
+							if (entry.isIntersecting) {
+								const numbers =
+									entry.target.querySelectorAll(
+										".stat-number",
+									);
+								numbers.forEach((el) => {
+									el.classList.remove(
+										"opacity-0",
+										"translate-y-8",
+									);
+								});
+								observer.unobserve(entry.target);
+							}
+						});
+					},
+					{ threshold: 0.3 },
+				);
+
+				const section = document.getElementById("stats-section");
+				if (section) observer.observe(section);
+			</script>
 		</section>
 
 		<!-- CTA -->
 		<section
-			class="relative z-10 px-8 md:px-16 py-24 md:py-32 border-t-[3px] border-text-primary"
+			class="relative z-10 px-8 md:px-16 py-32 md:py-48 border-b-[3px] border-text-primary"
 		>
-			<div class="max-w-3xl mx-auto text-center">
+			<!-- Decorative corner marks -->
+			<div
+				class="absolute top-8 left-8 w-8 h-8 border-t-[3px] border-l-[3px] border-text-primary/20"
+			>
+			</div>
+			<div
+				class="absolute top-8 right-8 w-8 h-8 border-t-[3px] border-r-[3px] border-text-primary/20"
+			>
+			</div>
+			<div
+				class="absolute bottom-8 left-8 w-8 h-8 border-b-[3px] border-l-[3px] border-text-primary/20"
+			>
+			</div>
+			<div
+				class="absolute bottom-8 right-8 w-8 h-8 border-b-[3px] border-r-[3px] border-text-primary/20"
+			>
+			</div>
+
+			<div
+				class="max-w-4xl mx-auto text-center flex flex-col items-center"
+			>
 				<h2
-					class="font-mono font-bold text-4xl md:text-6xl leading-tight text-text-primary mb-6"
+					class="font-mono font-bold text-5xl md:text-7xl lg:text-8xl leading-[0.9] tracking-tighter text-text-primary mb-8"
 				>
-					START READING<br />NOW
+					<span
+						class="block italic font-serif font-normal text-text-secondary mb-6 text-2xl md:text-4xl tracking-normal"
+						>{t("cta.pretitle")}</span
+					>
+					{t("cta.title.1")}<br />{t("cta.title.2")}
 				</h2>
 				<p
-					class="font-serif text-lg md:text-xl text-text-secondary mb-12 max-w-lg mx-auto leading-relaxed"
+					class="font-serif text-xl md:text-2xl text-text-secondary mb-12 max-w-2xl mx-auto leading-relaxed"
 				>
-					Join Frontpage and take back control of your news diet.
-					Free, open, and built for readers.
+					{t("cta.subtitle")}
 				</p>
 				<a
 					href="/register"
-					class="inline-flex items-center gap-2 font-mono text-sm font-semibold text-bg-primary bg-text-primary px-10 py-4 rounded-md hover:opacity-90 transition-opacity no-underline border-[3px] border-text-primary"
+					class="group relative inline-flex items-center justify-center font-mono text-sm md:text-base font-bold text-bg-primary bg-text-primary px-12 py-5 uppercase tracking-[0.2em] no-underline hover:bg-accent transition-colors duration-300"
 				>
-					CREATE YOUR ACCOUNT →
+					<span>{t("cta.button")}</span>
+					<svg
+						class="w-5 h-5 ml-4 transform group-hover:translate-x-2 transition-transform duration-300"
+						fill="none"
+						stroke="currentColor"
+						viewBox="0 0 24 24"
+						aria-hidden="true"
+						><path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							stroke-width="2"
+							d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg
+					>
 				</a>
 			</div>
 		</section>
-
-		<!-- FOOTER -->
-		<footer
-			class="relative z-10 px-8 md:px-16 py-8 border-t-[3px] border-text-primary flex flex-col md:flex-row items-center justify-between gap-4"
-		>
-			<p class="font-mono text-xs text-text-secondary">
-				© 2026 FRONTPAGE
-			</p>
-			<div class="flex items-center gap-6">
-				<a
-					href="/login"
-					class="text-xs text-text-secondary hover:text-text-primary transition-colors no-underline"
-					>Sign in</a
-				>
-				<a
-					href="/register"
-					class="text-xs text-text-secondary hover:text-text-primary transition-colors no-underline"
-					>Register</a
-				>
-				<a
-					href="/dashboard"
-					class="text-xs text-text-secondary hover:text-text-primary transition-colors no-underline"
-					>Dashboard</a
-				>
-			</div>
-		</footer>
-	</main>
+	</div>
 </Layout>

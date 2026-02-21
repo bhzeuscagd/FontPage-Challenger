@@ -1,0 +1,55 @@
+---
+import { useTranslations, defaultLang } from "../i18n/ui";
+
+const langCookie = Astro.cookies.get("lang")?.value;
+const currentLang =
+    langCookie === "es" || langCookie === "en" ? langCookie : defaultLang;
+---
+
+<div
+    class="group fixed bottom-6 left-0 z-[9999] h-11 flex items-center bg-bg-primary border-[2px] border-l-0 border-text-primary rounded-r-xl transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] transform -translate-x-[calc(100%-3.2rem)] hover:translate-x-0 shadow-[4px_0_12px_rgba(0,0,0,0.1)] overflow-hidden pl-3 pr-2"
+>
+    <select
+        id="app-lang-select"
+        class="bg-transparent border-none text-text-primary font-mono text-xs font-bold uppercase cursor-pointer outline-none mr-2"
+    >
+        <option value="en" selected={currentLang === "en"}>ENG</option>
+        <option value="es" selected={currentLang === "es"}>ESP</option>
+    </select>
+    <div
+        class="w-8 h-8 rounded-lg bg-text-primary text-bg-primary flex items-center justify-center shrink-0 pointer-events-none group-hover:scale-90 transition-transform"
+    >
+        <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="lucide lucide-globe"
+            ><circle cx="12" cy="12" r="10"></circle><path
+                d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"
+            ></path><path d="M2 12h20"></path></svg
+        >
+    </div>
+</div>
+
+<script>
+    const langSelect = document.getElementById(
+        "app-lang-select",
+    ) as HTMLSelectElement;
+
+    if (langSelect) {
+        langSelect.addEventListener("change", (e) => {
+            const newLang = (e.target as HTMLSelectElement).value;
+            // Set cookie for Astro SSR
+            document.cookie = `lang=${newLang}; path=/; max-age=31536000`;
+            localStorage.setItem("preferred-language", newLang);
+            // Reload to fetch translations from server
+            window.location.reload();
+        });
+    }
+</script>

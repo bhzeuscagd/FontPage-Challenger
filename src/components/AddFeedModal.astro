@@ -1,5 +1,11 @@
 ---
 import Icon from "./Icon.astro";
+import { useTranslations, defaultLang } from "../i18n/ui";
+
+const langCookie = Astro.cookies.get("lang")?.value;
+const lang =
+    langCookie === "es" || langCookie === "en" ? langCookie : defaultLang;
+const t = useTranslations(lang);
 ---
 
 <div
@@ -13,7 +19,7 @@ import Icon from "./Icon.astro";
         <div
             class="flex items-center justify-between p-6 border-b-[3px] border-text-primary"
         >
-            <h2 class="text-3xl font-serif font-bold">Add New Feed</h2>
+            <h2 class="text-3xl font-serif font-bold">{t("add_feed.title")}</h2>
             <button
                 id="close-modal"
                 class="text-text-primary hover:opacity-70 transition-opacity cursor-pointer p-1"
@@ -30,13 +36,13 @@ import Icon from "./Icon.astro";
                     <label
                         for="feed-url"
                         class="text-xs font-mono uppercase text-text-secondary opacity-60"
-                        >Feed URL</label
+                        >{t("add_feed.url_label")}</label
                     >
                     <input
                         type="url"
                         id="feed-url"
                         name="url"
-                        placeholder="https://example.com/rss.xml"
+                        placeholder={t("add_feed.url_ph")}
                         required
                         class="bg-bg-secondary border-[3px] border-text-primary p-3 font-sans text-lg focus:outline-none focus:bg-bg-primary transition-colors"
                     />
@@ -49,7 +55,7 @@ import Icon from "./Icon.astro";
                     id="submit-feed"
                     class="bg-text-primary text-bg-primary font-bold py-4 text-xl hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                    Add Subscription
+                    {t("add_feed.btn")}
                 </button>
             </form>
         </div>

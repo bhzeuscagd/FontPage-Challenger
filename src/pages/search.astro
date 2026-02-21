@@ -1,11 +1,24 @@
 ---
 import AppLayout from "../layouts/AppLayout.astro";
 import Icon from "../components/Icon.astro";
+import { useTranslations, defaultLang } from "../i18n/ui";
+
+const langCookie = Astro.cookies.get("lang")?.value;
+const lang =
+    langCookie === "es" || langCookie === "en" ? langCookie : defaultLang;
+const t = useTranslations(lang);
 ---
 
-<AppLayout title="Search - Frontpage">
+<AppLayout
+    title={`${t("search.title")} - Frontpage`}
+    description="Search your entire personalized news database instantly."
+    type="WebApplication"
+    lang={lang}
+>
     <div class="mt-25 pl-10">
-        <h1 class="text-6xl font-serif text-text-primary">Search</h1>
+        <h1 class="text-6xl font-serif text-text-primary">
+            {t("search.title")}
+        </h1>
     </div>
 
     <div class="flex items-center gap-6 pb-4 pl-10 pr-10">
@@ -13,7 +26,8 @@ import Icon from "../components/Icon.astro";
             <input
                 id="search-input"
                 type="text"
-                placeholder="Search across all your feeds..."
+                placeholder={t("search.ph")}
+                aria-label={t("search.ph")}
                 class="w-full bg-transparent border-none text-xl text-text-primary placeholder:text-text-secondary/30 focus:outline-none font-medium py-1"
                 autofocus
             />
@@ -75,6 +89,15 @@ import Icon from "../components/Icon.astro";
     let userBookmarks: Set<string> = new Set();
 
     async function init() {
+        const isGuest = localStorage.getItem("frontpage_guest") === "true";
+        if (isGuest) {
+            currentSession = { guest: true };
+            if (searchStatus)
+                searchStatus.innerHTML =
+                    "Guest mode: Please sign in to search feeds.";
+            return;
+        }
+
         const {
             data: { session },
         } = await supabase.auth.getSession();

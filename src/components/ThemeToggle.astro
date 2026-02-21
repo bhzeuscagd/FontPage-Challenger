@@ -4,11 +4,19 @@ import Icon from "./Icon.astro";
 
 <button
     id="theme-toggle"
-    class="fixed bottom-6 right-6 z-9999 w-11 h-11 flex items-center justify-center bg-text-primary text-bg-primary border-none rounded-lg cursor-pointer transition-opacity duration-200 shadow-[0_2px_8px_rgba(0,0,0,0.2)] hover:opacity-85"
-    aria-label="Cambiar tema"
+    class="group fixed bottom-[4.5rem] left-0 z-9999 h-11 flex items-center bg-bg-primary border-2 border-l-0 border-text-primary rounded-r-xl cursor-pointer transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] transform -translate-x-[calc(100%-3.2rem)] hover:translate-x-0 shadow-[4px_0_12px_rgba(0,0,0,0.1)] overflow-hidden pl-4 pr-2 w-auto"
+    aria-label="Toggle Theme"
 >
-    <Icon name="Sun" size={20} class="icon-sun" />
-    <Icon name="Moon" size={20} class="icon-moon" />
+    <span
+        class="text-xs font-mono font-bold text-text-primary tracking-widest whitespace-nowrap mr-3"
+        >THEME</span
+    >
+    <div
+        class="w-8 h-8 rounded-lg bg-text-primary text-bg-primary flex items-center justify-center shrink-0 overflow-hidden relative group-hover:scale-90 transition-transform"
+    >
+        <Icon name="Sun" size={16} class="icon-sun" />
+        <Icon name="Moon" size={16} class="icon-moon" />
+    </div>
 </button>
 
 <script>

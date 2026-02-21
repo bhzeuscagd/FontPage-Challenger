@@ -1,21 +1,34 @@
 ---
 import AppLayout from "../layouts/AppLayout.astro";
 import Icon from "../components/Icon.astro";
+import { useTranslations, defaultLang } from "../i18n/ui";
+
+const langCookie = Astro.cookies.get("lang")?.value;
+const lang =
+    langCookie === "es" || langCookie === "en" ? langCookie : defaultLang;
+const t = useTranslations(lang);
 ---
 
-<AppLayout title="Explore - Frontpage">
-    <div class="px-8 py-12 max-w-7xl mx-auto">
+<AppLayout
+    title={`${t("explore.title")} - Frontpage`}
+    description="Discover new RSS and Atom feeds. Explore trending tech blogs and news outlets."
+    type="WebApplication"
+    lang={lang}
+>
+    <div class="mt-25 pl-10 pr-10 md:pr-16 max-w-7xl mx-auto">
         <div
             class="flex items-center justify-between mb-12 border-b border-text-primary pb-6"
         >
-            <h1 class="font-serif text-5xl text-text-primary">Explore Feeds</h1>
+            <h1 class="font-serif text-5xl text-text-primary">
+                {t("explore.title")}
+            </h1>
             <div
                 class="flex items-center gap-4 bg-bg-secondary border border-text-primary/10 px-4 py-2 rounded-lg w-full max-w-md"
             >
                 <Icon name="Search" size={18} class="text-text-secondary" />
                 <input
                     type="text"
-                    placeholder="Search by topic or URL..."
+                    placeholder={t("explore.ph")}
                     class="bg-transparent border-none outline-none text-sm w-full font-serif"
                 />
             </div>
@@ -25,8 +38,29 @@ import Icon from "../components/Icon.astro";
             class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 opacity-50 italic font-serif text-xl py-24 text-center"
         >
             <p class="col-span-full">
-                "Feed exploration and discovery is coming soon..."
+                {t("explore.empty")}
             </p>
         </div>
     </div>
 </AppLayout>
+
+<script>
+    import { supabase } from "../lib/supabase";
+
+    async function checkAuth() {
+        const params = new URLSearchParams(window.location.search);
+        const isGuest =
+            params.get("guest") === "true" ||
+            localStorage.getItem("frontpage_guest") === "true";
+        if (isGuest) return;
+
+        const {
+            data: { session },
+        } = await supabase.auth.getSession();
+        if (!session) {
+            window.location.href = "/login";
+        }
+    }
+
+    checkAuth();
+</script>

@@ -1,0 +1,57 @@
+---
+import { defaultLang, useTranslations } from "../i18n/ui";
+
+const langCookie = Astro.cookies.get("lang")?.value;
+const lang =
+    langCookie === "es" || langCookie === "en" ? langCookie : defaultLang;
+const t = useTranslations(lang as any);
+---
+
+<div
+    id="cookie-consent"
+    class="fixed bottom-0 left-0 w-full bg-surface border-t border-border p-4 shadow-[0_-4px_12px_rgba(0,0,0,0.1)] z-9999 transform translate-y-full transition-transform duration-500 flex flex-col sm:flex-row items-center justify-between gap-4"
+>
+    <div class="text-sm text-text-secondary max-w-4xl font-mono">
+        {t("cookies.message")}
+    </div>
+    <div class="flex items-center gap-3 shrink-0 w-full sm:w-auto">
+        <button
+            id="cookie-reject"
+            class="flex-1 sm:flex-none px-4 py-2 border-2 border-text-primary/20 hover:bg-text-primary/10 text-text-primary text-sm font-semibold rounded-xl transition-colors cursor-pointer"
+        >
+            {t("cookies.reject")}
+        </button>
+        <button
+            id="cookie-accept"
+            class="flex-1 sm:flex-none px-4 py-2 bg-text-primary hover:opacity-90 text-bg-primary text-sm font-bold rounded-xl transition-colors cursor-pointer"
+        >
+            {t("cookies.accept")}
+        </button>
+    </div>
+</div>
+
+<script>
+    const consentBanner = document.getElementById("cookie-consent");
+    const acceptBtn = document.getElementById("cookie-accept");
+    const rejectBtn = document.getElementById("cookie-reject");
+
+    if (consentBanner && acceptBtn && rejectBtn) {
+        const consent = localStorage.getItem("cookie-consent");
+
+        if (!consent) {
+            setTimeout(() => {
+                consentBanner.classList.remove("translate-y-full");
+            }, 1000);
+        }
+
+        acceptBtn.addEventListener("click", () => {
+            localStorage.setItem("cookie-consent", "accepted");
+            consentBanner.classList.add("translate-y-full");
+        });
+
+        rejectBtn.addEventListener("click", () => {
+            localStorage.setItem("cookie-consent", "rejected");
+            consentBanner.classList.add("translate-y-full");
+        });
+    }
+</script>

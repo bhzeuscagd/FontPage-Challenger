@@ -1,13 +1,19 @@
 ---
 import Icon from "./Icon.astro";
+import { useTranslations, defaultLang } from "../i18n/ui";
+
+const langCookie = Astro.cookies.get("lang")?.value;
+const lang =
+  langCookie === "es" || langCookie === "en" ? langCookie : defaultLang;
+const t = useTranslations(lang);
 
 const menuItems = [
-  { label: "Today", icon: "Calendar", href: "/dashboard" },
-  { label: "Search", icon: "Search", href: "/search" },
-  { label: "Read Later", icon: "Bookmark", href: "/bookmarks" },
-  { label: "My Feeds", icon: "Rss", href: "/feeds" },
-  { label: "Explore", icon: "Globe", href: "/explore" },
-  { label: "Settings", icon: "Settings", href: "/settings" },
+  { label: t("sidebar.today"), icon: "Calendar", href: "/dashboard" },
+  { label: t("sidebar.search"), icon: "Search", href: "/search" },
+  { label: t("sidebar.read_later"), icon: "Bookmark", href: "/bookmarks" },
+  { label: t("sidebar.my_feeds"), icon: "Rss", href: "/feeds" },
+  { label: t("sidebar.explore"), icon: "Globe", href: "/explore" },
+  { label: t("sidebar.settings"), icon: "Settings", href: "/settings" },
 ];
 
 const currentPath = Astro.url.pathname;
@@ -35,7 +41,7 @@ const currentPath = Astro.url.pathname;
   <div class="mx-6 h-[3px] bg-text-primary mb-2"></div>
 
   <!-- Navigation -->
-  <nav class="flex-1 px-3 space-y-4">
+  <nav class="flex-1 overflow-y-auto overflow-x-hidden px-3 space-y-4">
     <ul class="space-y-1">
       {
         menuItems.map((item) => {
@@ -67,8 +73,8 @@ const currentPath = Astro.url.pathname;
     <div class="mt-4 pt-4 border-t border-text-primary/10">
       <div class="px-3 flex items-center justify-between mb-2">
         <span
-          class="sidebar-label text-[10px] font-mono uppercase tracking-widest text-text-secondary opacity-50"
-          >Subscriptions</span
+          class="sidebar-label text-[10px] font-mono uppercase tracking-widest text-text-primary opacity-100 font-bold"
+          >{t("sidebar.subscriptions")}</span
         >
         <button
           id="refresh-subs"
@@ -103,20 +109,25 @@ const currentPath = Astro.url.pathname;
       />
       <span
         class="sidebar-label whitespace-nowrap overflow-hidden transition-all duration-300"
-        >Collapse</span
+        >{t("sidebar.collapse")}</span
       >
     </button>
   </div>
 
-  <!-- Bottom user area -->
   <div class="p-3 mt-auto">
-    <div
-      class="flex items-center gap-3 p-2 rounded-xl border border-transparent hover:bg-text-primary hover:border-text-primary transition-all cursor-pointer group"
+    <a
+      href="/profile"
+      class="flex items-center gap-3 p-2 rounded-xl border border-transparent hover:bg-text-primary hover:border-text-primary transition-all cursor-pointer group no-underline"
     >
       <div
-        class="w-9 h-9 rounded-full bg-surface border border-border flex items-center justify-center text-xs font-bold text-text-secondary group-hover:text-bg-primary group-hover:border-bg-primary/30 transition-colors shrink-0"
+        class="relative w-9 h-9 rounded-full bg-surface border border-border flex items-center justify-center text-xs font-bold text-text-secondary group-hover:text-bg-primary group-hover:border-bg-primary/30 transition-colors shrink-0 overflow-hidden"
       >
-        <Icon name="User" size={16} />
+        <div id="sidebar-user-icon"><Icon name="User" size={16} /></div>
+        <img
+          id="sidebar-user-avatar"
+          src=""
+          class="hidden absolute inset-0 w-full h-full object-cover"
+        />
       </div>
       <div
         class="sidebar-label flex-1 min-w-0 overflow-hidden transition-all duration-300"
@@ -139,9 +150,17 @@ const currentPath = Astro.url.pathname;
         size={16}
         class="sidebar-label text-text-secondary opacity-50 group-hover:opacity-100 group-hover:text-bg-primary transition-all duration-300 overflow-hidden"
       />
-    </div>
+    </a>
   </div>
 </aside>
+
+<!-- Pass translation strings to client side script -->
+<div
+  id="sidebar-translations"
+  data-uncategorized={t("sidebar.uncategorized")}
+  class="hidden"
+>
+</div>
 
 <script>
   import { supabase } from "../lib/supabase";
@@ -154,6 +173,9 @@ const currentPath = Astro.url.pathname;
   const refreshBtn = document.getElementById("refresh-subs");
 
   let currentSubscriptions: any[] = [];
+  const translationsNode = document.getElementById("sidebar-translations");
+  const uncategorizedText =
+    translationsNode?.getAttribute("data-uncategorized") || "Uncategorized";
 
   // --- Sidebar Collapse/Expand ---
   const savedState = localStorage.getItem("sidebar-collapsed");
@@ -315,8 +337,8 @@ const currentPath = Astro.url.pathname;
         <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="shrink-0 text-text-secondary/40 transition-transform ${isCollapsed ? "" : "rotate-90"}">
           <path d="m9 18 6-6-6-6"/>
         </svg>
-        <span class="text-[10px] font-mono uppercase tracking-widest text-text-secondary opacity-50 truncate flex-1">${catName}</span>
-        <span class="text-[9px] font-mono text-text-secondary/30">${subs.length}</span>
+        <span class="text-[10px] font-mono uppercase tracking-widest text-text-primary opacity-100 font-bold truncate flex-1">${catName}</span>
+        <span class="text-[9px] font-mono text-text-secondary/80">${subs.length}</span>
       `;
 
         catHeader.addEventListener("click", () => {
@@ -340,8 +362,8 @@ const currentPath = Astro.url.pathname;
     // Render uncategorized feeds
     if (uncategorized.length > 0 && Object.keys(grouped).length > 0) {
       const divider = document.createElement("li");
-      divider.className = "px-3 py-1 sidebar-label";
-      divider.innerHTML = `<span class="text-[10px] font-mono uppercase tracking-widest text-text-secondary/30">Uncategorized</span>`;
+      divider.className = "px-3 py-1 mt-2 sidebar-label";
+      divider.innerHTML = `<span class="text-[10px] font-mono uppercase tracking-widest text-text-primary opacity-100 font-bold">${uncategorizedText}</span>`;
       subsList.appendChild(divider);
     }
     uncategorized.forEach((sub) => renderSubItem(sub));
@@ -464,14 +486,50 @@ const currentPath = Astro.url.pathname;
 
   // Subscribe to auth changes
   supabase.auth.onAuthStateChange((event, session) => {
-    if (session) loadSidebarSubs();
+    if (session) {
+      loadSidebarSubs();
+      loadUserInfo();
+    }
   });
+
+  async function loadUserInfo() {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    if (!session) return;
+
+    const user = session.user;
+    const userNameEl = document.getElementById("user-name");
+    const userInfoEl = document.getElementById("user-info");
+    const userAvatarEl = document.getElementById(
+      "sidebar-user-avatar",
+    ) as HTMLImageElement;
+    const userIconEl = document.getElementById("sidebar-user-icon");
+
+    if (userNameEl)
+      userNameEl.textContent =
+        user.user_metadata?.full_name || user.email?.split("@")[0] || "User";
+    if (userInfoEl) userInfoEl.textContent = user.email || "";
+
+    if (userAvatarEl) {
+      if (user.user_metadata?.avatar_url) {
+        userAvatarEl.src = user.user_metadata.avatar_url;
+        userAvatarEl.classList.remove("hidden");
+        if (userIconEl) userIconEl.classList.add("hidden");
+      } else if (user.email) {
+        userAvatarEl.src = `https://api.dicebear.com/9.x/shapes/svg?seed=${user.email}`;
+        userAvatarEl.classList.remove("hidden");
+        if (userIconEl) userIconEl.classList.add("hidden");
+      }
+    }
+  }
 
   refreshBtn?.addEventListener("click", loadSidebarSubs);
   window.addEventListener("feed-added", loadSidebarSubs);
   window.addEventListener("unread-counts-changed", loadSidebarSubs);
 
   loadSidebarSubs();
+  loadUserInfo();
 </script>
 
 <style is:global>

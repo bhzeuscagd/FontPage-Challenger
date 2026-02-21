@@ -2,27 +2,88 @@
 import "../styles/global.css";
 import Fonts from "../components/Fonts.astro";
 import ThemeToggle from "../components/ThemeToggle.astro";
+import Footer from "../components/Footer.astro";
+import CookieConsent from "../components/CookieConsent.astro";
 import { ViewTransitions } from "astro:transitions";
 
 interface Props {
 	title: string;
+	description?: string;
+	image?: string;
+	type?: "website" | "article" | "SoftwareApplication";
+	lang?: string;
 }
 
-const { title } = Astro.props;
+const {
+	title,
+	description = "Frontpage - Your personalized tech content aggregator",
+	image = "/og-image.jpg",
+	type = "website",
+	lang = "en",
+} = Astro.props;
+
+// Default canonical URL
+const canonicalURL = new URL(
+	Astro.url.pathname,
+	Astro.site || "https://frontpage.app",
+);
+
+// JSON-LD Schema
+const schemaValue =
+	type === "SoftwareApplication"
+		? {
+				"@context": "https://schema.org",
+				"@type": "SoftwareApplication",
+				name: "Frontpage",
+				operatingSystem: "Web",
+				applicationCategory: "NewsApplication",
+				offers: {
+					"@type": "Offer",
+					price: "0",
+					priceCurrency: "USD",
+				},
+			}
+		: {
+				"@context": "https://schema.org",
+				"@type": "Organization",
+				url: canonicalURL.href,
+				logo: `${Astro.site || "https://frontpage.app"}/favicon.svg`,
+			};
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang={lang}>
 	<head>
 		<meta charset="UTF-8" />
-		<meta
-			name="description"
-			content="Frontpage - Your personalized tech content aggregator"
-		/>
+		<meta name="description" content={description} />
 		<meta name="viewport" content="width=device-width" />
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<link rel="canonical" href={canonicalURL} />
 		<meta name="generator" content={Astro.generator} />
 		<title>{title}</title>
+
+		<!-- Open Graph / Facebook -->
+		<meta
+			property="og:type"
+			content={type === "SoftwareApplication" ? "website" : type}
+		/>
+		<meta property="og:url" content={canonicalURL} />
+		<meta property="og:title" content={title} />
+		<meta property="og:description" content={description} />
+		<meta property="og:image" content={new URL(image, canonicalURL)} />
+
+		<!-- Twitter -->
+		<meta property="twitter:card" content="summary_large_image" />
+		<meta property="twitter:url" content={canonicalURL} />
+		<meta property="twitter:title" content={title} />
+		<meta property="twitter:description" content={description} />
+		<meta property="twitter:image" content={new URL(image, canonicalURL)} />
+
+		<!-- JSON-LD Structured Data -->
+		<script
+			type="application/ld+json"
+			set:html={JSON.stringify(schemaValue)}
+		/>
 
 		<!-- Font Preloading -->
 		<link
@@ -116,9 +177,13 @@ const { title } = Astro.props;
 		</style>
 	</head>
 	<body
-		class="bg-bg-primary text-text-primary min-h-screen overflow-x-hidden"
+		class="bg-bg-primary text-text-primary min-h-screen overflow-x-hidden flex flex-col"
 	>
-		<slot />
+		<main class="grow">
+			<slot />
+		</main>
+		<Footer />
 		<ThemeToggle />
+		<CookieConsent />
 	</body>
 </html>

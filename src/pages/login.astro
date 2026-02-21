@@ -1,5 +1,11 @@
 ---
 import Layout from "../layouts/Layout.astro";
+import { useTranslations, defaultLang } from "../i18n/ui";
+
+const langCookie = Astro.cookies.get("lang")?.value;
+const lang =
+    langCookie === "es" || langCookie === "en" ? langCookie : defaultLang;
+const t = useTranslations(lang);
 
 const initialMode = Astro.url.pathname.includes("register")
     ? "register"
@@ -21,14 +27,16 @@ const initialMode = Astro.url.pathname.includes("register")
                 id="overlay-login"
                 class="flex flex-col items-start text-start gap-4 transition-opacity duration-500"
             >
-                <h2 class="font-serif text-2xl text-text-primary">Log in</h2>
+                <h2 class="font-serif text-2xl text-text-primary">
+                    {t("auth.login.title")}
+                </h2>
                 <h1
                     class="font-mono font-bold text-7xl leading-none text-text-primary"
                 >
-                    WELCOME<br />BACK
+                    {t("auth.login.welcome_1")}<br />{t("auth.login.welcome_2")}
                 </h1>
                 <p class="text-text-secondary max-w-xs">
-                    Sign back in to your account to access your notices
+                    {t("auth.login.subtitle")}
                 </p>
             </div>
 
@@ -37,15 +45,18 @@ const initialMode = Astro.url.pathname.includes("register")
                 id="overlay-register"
                 class="absolute inset-0 flex flex-col items-end text-end justify-center gap-4 p-16 transition-opacity duration-500 opacity-0 pointer-events-none"
             >
-                <h2 class="font-serif text-2xl text-text-primary">Sign up</h2>
+                <h2 class="font-serif text-2xl text-text-primary">
+                    {t("auth.register.title")}
+                </h2>
                 <h1
                     class="font-mono font-bold text-7xl leading-none text-text-primary"
                 >
-                    THE NEWS<br />ERA STARTS<br />NOW
+                    {t("auth.register.welcome_1")}<br />{
+                        t("auth.register.welcome_2")
+                    }<br />{t("auth.register.welcome_3")}
                 </h1>
                 <p class="text-text-secondary max-w-xs">
-                    Join Frontpage and never miss what matters. Your
-                    personalized news feed awaits.
+                    {t("auth.register.subtitle")}
                 </p>
             </div>
         </div>
@@ -59,7 +70,7 @@ const initialMode = Astro.url.pathname.includes("register")
                 <h2
                     class="text-center text-2xl font-bold tracking-tight text-text-primary"
                 >
-                    Sign in to your account
+                    {t("auth.form.login_header")}
                 </h2>
             </div>
             <div class="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
@@ -68,7 +79,7 @@ const initialMode = Astro.url.pathname.includes("register")
                         <label
                             for="login-email"
                             class="block text-sm font-medium text-text-primary"
-                            >Email address</label
+                            >{t("auth.form.email")}</label
                         >
                         <div class="mt-2">
                             <input
@@ -86,12 +97,12 @@ const initialMode = Astro.url.pathname.includes("register")
                             <label
                                 for="login-password"
                                 class="block text-sm font-medium text-text-primary"
-                                >Password</label
+                                >{t("auth.form.password")}</label
                             >
                             <a
                                 href="#"
                                 class="text-sm font-semibold text-text-primary no-underline hover:opacity-80"
-                                >Forgot password?</a
+                                >{t("auth.form.forgot")}</a
                             >
                         </div>
                         <div class="mt-2">
@@ -110,17 +121,17 @@ const initialMode = Astro.url.pathname.includes("register")
                             type="submit"
                             class="flex w-full justify-center rounded-md bg-text-primary px-3 py-1.5 text-sm font-semibold text-bg-primary shadow-sm cursor-pointer hover:opacity-90"
                         >
-                            Sign in
+                            {t("auth.form.signin_btn")}
                         </button>
                     </div>
                 </form>
                 <p class="mt-10 text-center text-sm text-text-secondary">
-                    Not a member?
+                    {t("auth.form.not_member")}
                     <button
                         id="go-register"
                         class="font-semibold text-text-primary cursor-pointer bg-transparent border-none hover:opacity-80"
                     >
-                        Start a 14 day free trial
+                        {t("auth.form.start_trial")}
                     </button>
                 </p>
                 <div
@@ -140,7 +151,7 @@ const initialMode = Astro.url.pathname.includes("register")
                 <h2
                     class="text-center text-2xl font-bold tracking-tight text-text-primary"
                 >
-                    Create your account
+                    {t("auth.form.register_header")}
                 </h2>
             </div>
             <div class="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
@@ -149,7 +160,7 @@ const initialMode = Astro.url.pathname.includes("register")
                         <label
                             for="reg-email"
                             class="block text-sm font-medium text-text-primary"
-                            >Email address</label
+                            >{t("auth.form.email")}</label
                         >
                         <div class="mt-2">
                             <input
@@ -166,7 +177,7 @@ const initialMode = Astro.url.pathname.includes("register")
                         <label
                             for="reg-password"
                             class="block text-sm font-medium text-text-primary"
-                            >Password</label
+                            >{t("auth.form.password")}</label
                         >
                         <div class="mt-2">
                             <input
@@ -184,17 +195,17 @@ const initialMode = Astro.url.pathname.includes("register")
                             type="submit"
                             class="flex w-full justify-center rounded-md bg-text-primary px-3 py-1.5 text-sm font-semibold text-bg-primary shadow-sm cursor-pointer hover:opacity-90"
                         >
-                            Sign up
+                            {t("auth.form.signup_btn")}
                         </button>
                     </div>
                 </form>
                 <p class="mt-10 text-center text-sm text-text-secondary">
-                    Already a member?
+                    {t("auth.form.already_member")}
                     <button
                         id="go-login"
                         class="font-semibold text-text-primary cursor-pointer bg-transparent border-none hover:opacity-80"
                     >
-                        Sign in
+                        {t("auth.form.signin_link")}
                     </button>
                 </p>
                 <div
@@ -223,6 +234,13 @@ const initialMode = Astro.url.pathname.includes("register")
     const goLoginBtn = document.getElementById("go-login")!;
 
     let currentMode = (window as any).__authInitialMode || "login";
+
+    // Auto-redirect if already logged in
+    supabase.auth.getSession().then(({ data: { session } }) => {
+        if (session) {
+            window.location.href = "/dashboard";
+        }
+    });
 
     function setMode(mode: string) {
         currentMode = mode;

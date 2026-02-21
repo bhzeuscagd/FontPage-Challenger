@@ -1,5 +1,11 @@
 ---
 import Icon from "./Icon.astro";
+import { useTranslations, defaultLang } from "../i18n/ui";
+
+const langCookie = Astro.cookies.get("lang")?.value;
+const lang =
+    langCookie === "es" || langCookie === "en" ? langCookie : defaultLang;
+const t = useTranslations(lang);
 ---
 
 <div class="relative inline-block text-left" id="feed-actions-menu">
@@ -8,7 +14,7 @@ import Icon from "./Icon.astro";
         class="text-text-secondary hover:bg-text-primary hover:text-bg-primary transition-all p-1 px-3 rounded-md flex items-center gap-2 text-xs border border-text-secondary/20 shadow-sm"
     >
         <Icon name="Plus" size={14} />
-        Options
+        {t("menu.options")}
         <Icon name="Chevron" size={12} class="rotate-90 opacity-50" />
     </button>
 
@@ -22,21 +28,21 @@ import Icon from "./Icon.astro";
                 data-action="add"
             >
                 <Icon name="Plus" size={14} />
-                Add New Feed
+                {t("menu.add_feed")}
             </button>
             <button
                 class="menu-item flex w-full items-center gap-3 px-4 py-2 text-xs text-text-primary hover:bg-text-primary/10 transition-colors border-none bg-transparent"
                 data-action="refresh"
             >
                 <Icon name="Refresh" size={14} />
-                Refresh All
+                {t("menu.refresh")}
             </button>
             <button
                 class="menu-item flex w-full items-center gap-3 px-4 py-2 text-xs text-text-primary hover:bg-text-primary/10 transition-colors border-none bg-transparent"
                 data-action="mark-read"
             >
                 <Icon name="Bookmark" size={14} />
-                Mark All Read
+                {t("menu.mark_read")}
             </button>
 
             <div class="h-px bg-text-primary/10 my-1"></div>
@@ -45,7 +51,7 @@ import Icon from "./Icon.astro";
             <div
                 class="px-4 py-1 text-[10px] uppercase font-mono tracking-widest text-text-secondary opacity-50"
             >
-                View Mode
+                {t("menu.view_mode")}
             </div>
             <button
                 class="menu-item view-mode-btn flex w-full items-center justify-between px-4 py-2 text-xs text-text-primary hover:bg-text-primary/10 transition-colors border-none bg-transparent"
@@ -53,7 +59,7 @@ import Icon from "./Icon.astro";
             >
                 <div class="flex items-center gap-3">
                     <Icon name="Globe" size={14} />
-                    Card View
+                    {t("menu.card_view")}
                 </div>
                 <div class="active-marker hidden text-text-primary">
                     <svg
@@ -76,7 +82,7 @@ import Icon from "./Icon.astro";
             >
                 <div class="flex items-center gap-3">
                     <Icon name="Calendar" size={14} />
-                    List View
+                    {t("menu.list_view")}
                 </div>
                 <div class="active-marker hidden text-text-primary">
                     <svg
@@ -98,8 +104,8 @@ import Icon from "./Icon.astro";
                 data-action="view-compact"
             >
                 <div class="flex items-center gap-3">
-                    <Icon name="Settings" size={14} />
-                    Compact View
+                    <Icon name="Settings2" size={14} />
+                    {t("menu.compact_view")}
                 </div>
                 <div class="active-marker hidden text-text-primary">
                     <svg

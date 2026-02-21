@@ -1,16 +1,24 @@
 ---
 import AppLayout from "../layouts/AppLayout.astro";
 import Icon from "../components/Icon.astro";
+import { useTranslations, defaultLang } from "../i18n/ui";
+
+const langCookie = Astro.cookies.get("lang")?.value;
+const lang =
+    langCookie === "es" || langCookie === "en" ? langCookie : defaultLang;
+const t = useTranslations(lang);
 ---
 
-<AppLayout title="Settings - Frontpage">
+<AppLayout title={`${t("settings.title")} - Frontpage`} lang={lang}>
     <div class="mt-25 pl-10">
-        <h1 class="text-6xl font-serif text-text-primary">Settings</h1>
+        <h1 class="text-6xl font-serif text-text-primary">
+            {t("settings.title")}
+        </h1>
     </div>
 
     <div class="flex items-center gap-6 pb-4 pl-10">
         <span class="text-xs font-mono uppercase text-text-secondary opacity-60"
-            >Account & Data</span
+            >{t("settings.subtitle")}</span
         >
     </div>
 
@@ -22,10 +30,10 @@ import Icon from "../components/Icon.astro";
             <div class="flex items-center justify-between mb-6">
                 <div>
                     <h2 class="text-2xl font-serif font-bold text-text-primary">
-                        Categories
+                        {t("settings.cat_title")}
                     </h2>
                     <p class="text-sm text-text-secondary opacity-60 mt-1">
-                        Organize your feeds into groups
+                        {t("settings.cat_desc")}
                     </p>
                 </div>
             </div>
@@ -34,14 +42,14 @@ import Icon from "../components/Icon.astro";
                 <input
                     id="new-cat-input"
                     type="text"
-                    placeholder="New category name..."
+                    placeholder={t("settings.cat_new_ph")}
                     class="flex-1 bg-bg-secondary border border-text-primary/10 px-4 py-2 text-sm text-text-primary placeholder:text-text-secondary/40 focus:outline-none focus:border-text-primary/30 transition-colors"
                 />
                 <button
                     id="add-cat-btn"
                     class="px-6 py-2 bg-text-primary text-bg-primary text-sm font-medium hover:opacity-90 transition-opacity"
                 >
-                    Add
+                    {t("settings.cat_add")}
                 </button>
             </div>
 
@@ -58,7 +66,7 @@ import Icon from "../components/Icon.astro";
                 <h3
                     class="text-sm font-mono uppercase tracking-widest text-text-secondary opacity-50 mb-4"
                 >
-                    Assign Feeds to Categories
+                    {t("settings.assign_title")}
                 </h3>
                 <div id="feed-assign-list" class="space-y-2">
                     <div
@@ -77,10 +85,10 @@ import Icon from "../components/Icon.astro";
             <div class="flex items-center justify-between mb-6">
                 <div>
                     <h2 class="text-2xl font-serif font-bold text-text-primary">
-                        Import / Export
+                        {t("settings.opml_title")}
                     </h2>
                     <p class="text-sm text-text-secondary opacity-60 mt-1">
-                        Migrate your subscriptions via OPML
+                        {t("settings.opml_desc")}
                     </p>
                 </div>
             </div>
@@ -92,12 +100,12 @@ import Icon from "../components/Icon.astro";
                 >
                     <div>
                         <h3 class="text-sm font-bold text-text-primary">
-                            Export OPML
+                            {t("settings.export")}
                         </h3>
                         <p
                             class="text-xs text-text-secondary opacity-60 mt-0.5"
                         >
-                            Download all your subscriptions as an OPML file
+                            {t("settings.export_desc")}
                         </p>
                     </div>
                     <button
@@ -127,13 +135,12 @@ import Icon from "../components/Icon.astro";
                 >
                     <div>
                         <h3 class="text-sm font-bold text-text-primary">
-                            Import OPML
+                            {t("settings.import")}
                         </h3>
                         <p
                             class="text-xs text-text-secondary opacity-60 mt-0.5"
                         >
-                            Add feeds from another reader by uploading an OPML
-                            file
+                            {t("settings.import_desc")}
                         </p>
                     </div>
                     <label
@@ -175,7 +182,7 @@ import Icon from "../components/Icon.astro";
         <!-- Account Section -->
         <section>
             <h2 class="text-2xl font-serif font-bold text-text-primary mb-6">
-                Account
+                {t("settings.account")}
             </h2>
             <button
                 id="logout-btn"

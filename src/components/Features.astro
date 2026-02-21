@@ -1,5 +1,10 @@
 ---
+import { useTranslations, defaultLang } from "../i18n/ui";
 
+const langCookie = Astro.cookies.get("lang")?.value;
+const lang =
+    langCookie === "es" || langCookie === "en" ? langCookie : defaultLang;
+const t = useTranslations(lang);
 ---
 
 <div class="features-shutter-wrapper relative h-[300vh] z-30">
@@ -14,27 +19,23 @@
             <div
                 class="grid grid-cols-1 md:grid-cols-3 w-full h-full max-w-none bg-bg-primary"
             >
-                <!-- Feature I -->
                 <div
                     class="feature-col relative p-12 md:p-16 lg:p-20 flex flex-col justify-end border-b md:border-b-0 md:border-r border-text-primary/20 hover:bg-text-primary/2 transition-colors"
                 >
-                    <div class="mb-auto">
+                    <div class="mt-auto">
                         <span
-                            class="font-serif text-3xl md:text-4xl text-text-primary opacity-60"
+                            class="font-serif text-3xl md:text-4xl text-text-primary block mb-2"
                             >I.</span
                         >
-                    </div>
-                    <div class="mt-8">
                         <h3
                             class="font-serif text-4xl md:text-5xl lg:text-6xl text-text-primary mb-6 leading-tight"
                         >
-                            Subscribe
+                            {t("features.1.title")}
                         </h3>
                         <p
                             class="text-text-secondary leading-relaxed text-lg md:text-xl max-w-sm"
                         >
-                            Add any RSS or Atom feed URL. Follow tech blogs,
-                            news outlets, and more.
+                            {t("features.1.desc")}
                         </p>
                     </div>
                 </div>
@@ -43,23 +44,20 @@
                 <div
                     class="feature-col relative p-12 md:p-16 lg:p-20 flex flex-col justify-end border-b md:border-b-0 md:border-r border-text-primary/20 hover:bg-text-primary/2 transition-colors"
                 >
-                    <div class="mb-auto">
+                    <div class="mt-auto">
                         <span
-                            class="font-serif text-3xl md:text-4xl text-text-primary opacity-60"
+                            class="font-serif text-3xl md:text-4xl text-text-primary block mb-2"
                             >II.</span
                         >
-                    </div>
-                    <div class="mt-8">
                         <h3
                             class="font-serif text-4xl md:text-5xl lg:text-6xl text-text-primary mb-6 leading-tight"
                         >
-                            Organize
+                            {t("features.2.title")}
                         </h3>
                         <p
                             class="text-text-secondary leading-relaxed text-lg md:text-xl max-w-sm"
                         >
-                            Group feeds into categories, bookmark articles, and
-                            search instantly.
+                            {t("features.2.desc")}
                         </p>
                     </div>
                 </div>
@@ -68,23 +66,20 @@
                 <div
                     class="feature-col relative p-12 md:p-16 lg:p-20 flex flex-col justify-end hover:bg-text-primary/2 transition-colors"
                 >
-                    <div class="mb-auto">
+                    <div class="mt-auto">
                         <span
-                            class="font-serif text-3xl md:text-4xl text-text-primary opacity-60"
+                            class="font-serif text-3xl md:text-4xl text-text-primary block mb-2"
                             >III.</span
                         >
-                    </div>
-                    <div class="mt-8">
                         <h3
                             class="font-serif text-4xl md:text-5xl lg:text-6xl text-text-primary mb-6 leading-tight"
                         >
-                            Read
+                            {t("features.3.title")}
                         </h3>
                         <p
                             class="text-text-secondary leading-relaxed text-lg md:text-xl max-w-sm"
                         >
-                            Clean reader view strips away clutter. Multi-layout
-                            support. Zero distractions.
+                            {t("features.3.desc")}
                         </p>
                     </div>
                 </div>
@@ -99,12 +94,12 @@
                 <p
                     class="font-mono text-xs md:text-sm tracking-[0.4em] text-text-secondary uppercase mb-8 opacity-60"
                 >
-                    How it works
+                    {t("features.shutter.pre")}
                 </p>
                 <h2
                     class="font-serif text-5xl md:text-7xl lg:text-9xl text-text-primary leading-[0.9] tracking-tighter max-w-5xl"
                 >
-                    Take back control <br /> of your reading.
+                    <span set:html={t("features.shutter.title")} />
                 </h2>
             </div>
 
