@@ -30,19 +30,7 @@ const t = useTranslations(lang);
                 class="flex items-center gap-2 text-xs font-mono uppercase text-text-secondary opacity-60 hover:opacity-100 transition-opacity"
             >
                 <span>Sources</span>
-                <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="12"
-                    height="12"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2.5"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                >
-                    <path d="m6 9 6 6 6-6"></path>
-                </svg>
+                <Icon name="Chevron" size={12} strokeWidth="2.5" />
             </button>
             <!-- Dropdown menu -->
             <div
@@ -210,7 +198,7 @@ const t = useTranslations(lang);
                         title="${isPinned ? "Unpin from tabs" : "Pin to tabs"}"
                     >
                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="${isPinned ? "currentColor" : "none"}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                            <use href="/sprite.svg#Star"></use>
                         </svg>
                     </button>
                     <span class="source-label flex-1 text-sm font-medium text-text-primary truncate">${src.feedTitle}</span>
@@ -328,7 +316,7 @@ const t = useTranslations(lang);
                 <div class="col-span-full flex flex-col items-center justify-center p-32 text-center">
                     <div class="w-16 h-16 bg-text-primary/5 rounded-full flex items-center justify-center mb-6 opacity-40">
                         <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/>
+                            <use href="/sprite.svg#Bookmark"></use>
                         </svg>
                     </div>
                     <h3 class="text-xl font-serif font-bold mb-2">${activeFilter === "all" ? "Your library is empty" : "No saved articles from this source"}</h3>
@@ -382,7 +370,7 @@ const t = useTranslations(lang);
                         data-feed-url="${item.feedUrl}"
                     >
                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/>
+                            <use href="/sprite.svg#Bookmark"></use>
                         </svg>
                     </button>
                 </div>

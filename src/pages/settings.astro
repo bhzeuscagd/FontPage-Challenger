@@ -112,19 +112,7 @@ const t = useTranslations(lang);
                         id="export-opml-btn"
                         class="px-5 py-2 bg-text-primary text-bg-primary text-sm font-medium hover:opacity-90 transition-opacity flex items-center gap-2"
                     >
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="14"
-                            height="14"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="2"
-                            ><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"
-                            ></path><polyline points="7 10 12 15 17 10"
-                            ></polyline><line x1="12" x2="12" y1="15" y2="3"
-                            ></line></svg
-                        >
+                        <Icon name="Download" size={14} strokeWidth="2" />
                         Export
                     </button>
                 </div>
@@ -146,19 +134,7 @@ const t = useTranslations(lang);
                     <label
                         class="px-5 py-2 bg-text-primary text-bg-primary text-sm font-medium hover:opacity-90 transition-opacity flex items-center gap-2 cursor-pointer"
                     >
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="14"
-                            height="14"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="2"
-                            ><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"
-                            ></path><polyline points="17 8 12 3 7 8"
-                            ></polyline><line x1="12" x2="12" y1="3" y2="15"
-                            ></line></svg
-                        >
+                        <Icon name="Upload" size={14} strokeWidth="2" />
                         Import
                         <input
                             type="file"
@@ -271,13 +247,13 @@ const t = useTranslations(lang);
             <div class="flex items-center justify-between p-3 bg-bg-secondary border border-text-primary/5 group hover:border-text-primary/15 transition-colors" data-cat-id="${cat.id}">
                 <div class="flex items-center gap-3">
                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-text-secondary opacity-40">
-                        <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+                        <use href="/sprite.svg#Folder"></use>
                     </svg>
                     <span class="text-sm font-medium text-text-primary">${cat.name}</span>
                     <span class="text-[10px] font-mono text-text-secondary/40">${subscriptions.filter((s) => s.category_id === cat.id).length} feeds</span>
                 </div>
                 <button class="delete-cat-btn opacity-0 group-hover:opacity-100 text-red-500/60 hover:text-red-500 transition-all p-1" data-id="${cat.id}" title="Delete category">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><use href="/sprite.svg#Trash"></use></svg>
                 </button>
             </div>
         `,

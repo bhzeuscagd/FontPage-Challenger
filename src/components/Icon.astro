@@ -3,18 +3,26 @@ interface Props {
     name: string;
     size?: number | string;
     class?: string;
+    fill?: string;
+    strokeWidth?: number | string;
 }
 
-const { name, size = 24, class: className = "" } = Astro.props;
+const {
+    name,
+    size = 24,
+    class: className = "",
+    fill = "none",
+    strokeWidth = "1.6",
+} = Astro.props;
 ---
 
 <svg
     width={size}
     height={size}
     viewBox="0 0 24 24"
-    fill="none"
+    fill={fill}
     stroke="currentColor"
-    stroke-width="1.6"
+    stroke-width={strokeWidth}
     stroke-linecap="round"
     stroke-linejoin="round"
     class={className}

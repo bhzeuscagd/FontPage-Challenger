@@ -1,5 +1,6 @@
 ---
 import { useTranslations, defaultLang } from "../i18n/ui";
+import Icon from "./Icon.astro";
 
 const langCookie = Astro.cookies.get("lang")?.value;
 const lang =
@@ -58,15 +59,13 @@ const currentYear = new Date().getFullYear();
                     <div
                         class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-text-primary"
                     >
-                        <svg
-                            class="fill-current h-3 w-3"
+                        <Icon
+                            name="Chevron"
+                            size={12}
+                            class="h-3 w-3 fill-current"
+                            strokeWidth="2.5"
                             aria-hidden="true"
-                            xmlns="http://www.w3.org/2000/svg"
-                            viewBox="0 0 20 20"
-                            ><path
-                                d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"
-                            ></path></svg
-                        >
+                        />
                     </div>
                 </div>
 

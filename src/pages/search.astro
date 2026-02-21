@@ -51,18 +51,7 @@ const t = useTranslations(lang);
             <div
                 class="w-16 h-16 bg-text-primary/5 rounded-full flex items-center justify-center mb-6 opacity-40"
             >
-                <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="32"
-                    height="32"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="1.5"
-                >
-                    <circle cx="11" cy="11" r="8"></circle><path
-                        d="m21 21-4.3-4.3"></path>
-                </svg>
+                <Icon name="Search" size={32} strokeWidth="1.5" />
             </div>
             <h3 class="text-xl font-serif font-bold mb-2">
                 Search your library
@@ -229,7 +218,7 @@ const t = useTranslations(lang);
                             data-feed-url="${feedUrl}"
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="${isBookmarked ? "currentColor" : "none"}" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/>
+                                <use href="/sprite.svg#Bookmark"></use>
                             </svg>
                         </button>
                     </div>

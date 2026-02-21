@@ -83,6 +83,17 @@ export const POST: APIRoute = async ({ request }) => {
     }
 
     // 5. Handle Subscription (User Link)
+    // To ensure all current items show up as unread, set last_read_at 
+    // to a date slightly before the oldest item in the feed (or generic old date if none)
+    let initialLastReadAt = new Date(0).toISOString();
+    if (validatedFeed.items && validatedFeed.items.length > 0) {
+        const oldestItem = validatedFeed.items.reduce((oldest: any, item: any) => {
+            return new Date(item.pubDate) < new Date(oldest.pubDate) ? item : oldest;
+        }, validatedFeed.items[0]);
+        // Set it one millisecond before the oldest item
+        initialLastReadAt = new Date(new Date(oldestItem.pubDate).getTime() - 1).toISOString();
+    }
+
     const { data: subscription, error: subError } = await supabaseClient
       .from('feed_subscriptions')
       .insert([
@@ -90,6 +101,7 @@ export const POST: APIRoute = async ({ request }) => {
           user_id: user.id,
           feed_id: feedId,
           category_id: categoryId || null,
+          last_read_at: initialLastReadAt // Use calculated date
         }
       ])
       .select()

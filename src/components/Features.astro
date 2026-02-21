@@ -20,7 +20,7 @@ const t = useTranslations(lang);
                 class="grid grid-cols-1 md:grid-cols-3 w-full h-full max-w-none bg-bg-primary"
             >
                 <div
-                    class="feature-col relative p-12 md:p-16 lg:p-20 flex flex-col justify-end border-b md:border-b-0 md:border-r border-text-primary/20 hover:bg-text-primary/2 transition-colors"
+                    class="feature-col relative p-12 md:p-16 lg:p-20 flex flex-col justify-end border-b-[3px] md:border-b-0 md:border-r-[3px] border-text-primary hover:bg-text-primary/2 transition-colors"
                 >
                     <div class="mt-auto">
                         <span
@@ -42,7 +42,7 @@ const t = useTranslations(lang);
 
                 <!-- Feature II -->
                 <div
-                    class="feature-col relative p-12 md:p-16 lg:p-20 flex flex-col justify-end border-b md:border-b-0 md:border-r border-text-primary/20 hover:bg-text-primary/2 transition-colors"
+                    class="feature-col relative p-12 md:p-16 lg:p-20 flex flex-col justify-end border-b-[3px] md:border-b-0 md:border-r-[3px] border-text-primary hover:bg-text-primary/2 transition-colors"
                 >
                     <div class="mt-auto">
                         <span
@@ -194,10 +194,5 @@ const t = useTranslations(lang);
             opacity 0.05s linear,
             transform 0.05s linear;
         will-change: opacity, transform;
-    }
-
-    /* Ensure the vertical lines look high-end */
-    .md\:border-r {
-        border-right-width: 1px;
     }
 </style>

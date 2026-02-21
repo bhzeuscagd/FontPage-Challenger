@@ -8,6 +8,7 @@ export const languages = {
   export const ui = {
     en: {
       // Nav
+      'nav.home': 'Back to Home',
       'nav.login': 'Log in',
       'nav.signup': 'Sign Up',
       'nav.dashboard': 'Dashboard',
@@ -102,6 +103,7 @@ export const languages = {
       'menu.card_view': 'Card View',
       'menu.list_view': 'List View',
       'menu.compact_view': 'Compact View',
+      'menu.unsubscribe': 'Unsubscribe',
 
       // Profile & Settings
       'profile.title': 'Profile',
@@ -112,6 +114,9 @@ export const languages = {
       'profile.avatar_btn': 'Save Avatar',
       'profile.email_desc': 'Your registered email address',
       'profile.email_label': 'Email',
+      'profile.name_label': 'Display Name',
+      'profile.name_ph': 'John Doe',
+      'profile.name_btn': 'Update Name',
       'profile.security': 'Security',
       'profile.pwd_desc': 'Update your password',
       'profile.pwd_old': 'Current Password',
@@ -157,6 +162,7 @@ export const languages = {
     },
     es: {
       // Nav
+      'nav.home': 'Volver al inicio',
       'nav.login': 'Entrar',
       'nav.signup': 'Registrarse',
       'nav.dashboard': 'Panel',
@@ -251,6 +257,7 @@ export const languages = {
       'menu.card_view': 'Vista de Tarjetas',
       'menu.list_view': 'Vista de Lista',
       'menu.compact_view': 'Vista Compacta',
+      'menu.unsubscribe': 'Eliminar Suscripción',
 
       // Profile & Settings
       'profile.title': 'Perfil',
@@ -261,6 +268,9 @@ export const languages = {
       'profile.avatar_btn': 'Guardar Foto',
       'profile.email_desc': 'Tu correo electrónico registrado',
       'profile.email_label': 'Correo',
+      'profile.name_label': 'Nombre a Mostrar',
+      'profile.name_ph': 'Juan Pérez',
+      'profile.name_btn': 'Actualizar Nombre',
       'profile.security': 'Seguridad',
       'profile.pwd_desc': 'Actualiza tu contraseña',
       'profile.pwd_old': 'Contraseña actual',

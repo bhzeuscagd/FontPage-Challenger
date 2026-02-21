@@ -177,6 +177,25 @@ const currentPath = Astro.url.pathname;
   const uncategorizedText =
     translationsNode?.getAttribute("data-uncategorized") || "Uncategorized";
 
+  // Check guest status
+  const urlParams = new URLSearchParams(window.location.search);
+  const isGuest =
+    urlParams.get("guest") === "true" ||
+    localStorage.getItem("frontpage_guest") === "true";
+
+  // Curated feed for guest mode
+  const GUEST_FEEDS = [
+    {
+      id: "guest-1",
+      is_favorite: true,
+      feeds: {
+        url: "https://www.theverge.com/rss/index.xml",
+        title: "The Verge",
+      },
+      categories: null,
+    },
+  ];
+
   // --- Sidebar Collapse/Expand ---
   const savedState = localStorage.getItem("sidebar-collapsed");
   if (savedState === "true") collapseSidebar();
@@ -221,9 +240,41 @@ const currentPath = Astro.url.pathname;
       )
       .join("");
 
+    if (isGuest) {
+      currentSubscriptions = GUEST_FEEDS;
+
+      try {
+        // Fetch the single guest feed to determine total items, and filter by what is stored locally
+        const feedRes = await fetch(
+          `/api/feeds/content?url=${encodeURIComponent(GUEST_FEEDS[0].feeds.url)}`,
+        );
+        if (feedRes.ok) {
+          const feedData = await feedRes.json();
+          const guestRead = JSON.parse(
+            localStorage.getItem("guest_read_items") || "[]",
+          );
+
+          let unreadCount = 0;
+          (feedData.items || []).forEach((item: any) => {
+            if (!guestRead.includes(item.guid)) {
+              unreadCount++;
+            }
+          });
+
+          currentSubscriptions[0].unreadCount = unreadCount;
+        }
+      } catch (err) {
+        console.error("Guest count fetch error", err);
+      }
+
+      renderSidebarSubs();
+      return;
+    }
+
     const {
       data: { session },
     } = await supabase.auth.getSession();
+
     if (!session) {
       subsList.innerHTML = `
         <li class="px-3 py-2 text-[10px] font-mono text-text-secondary opacity-40 sidebar-label">
@@ -277,6 +328,7 @@ const currentPath = Astro.url.pathname;
   let categories: any[] = [];
 
   async function loadCategories() {
+    if (isGuest) return;
     const {
       data: { session },
     } = await supabase.auth.getSession();
@@ -335,7 +387,7 @@ const currentPath = Astro.url.pathname;
           "flex items-center gap-2 px-3 py-1 cursor-pointer group/cat sidebar-label";
         catHeader.innerHTML = `
         <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="shrink-0 text-text-secondary/40 transition-transform ${isCollapsed ? "" : "rotate-90"}">
-          <path d="m9 18 6-6-6-6"/>
+          <use href="/sprite.svg#ChevronRight"></use>
         </svg>
         <span class="text-[10px] font-mono uppercase tracking-widest text-text-primary opacity-100 font-bold truncate flex-1">${catName}</span>
         <span class="text-[9px] font-mono text-text-secondary/80">${subs.length}</span>
@@ -409,18 +461,36 @@ const currentPath = Astro.url.pathname;
         `
             : ""
         }
-        <button class="fav-toggle p-0.5 rounded hover:bg-text-primary/20 transition-all ${sub.is_favorite ? "text-yellow-500 opacity-100" : "opacity-0 group-hover:opacity-100"}" data-id="${sub.id}" data-fav="${sub.is_favorite}">
-          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="${sub.is_favorite ? "currentColor" : "none"}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+        <button class="fav-toggle p-0.5 rounded hover:bg-text-primary/20 transition-all ${sub.is_favorite ? "text-yellow-500 opacity-100" : "opacity-0 group-hover:opacity-100"}" data-id="${sub.id}" data-fav="${sub.is_favorite}" title="Toggle Favorite">
+          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="${sub.is_favorite ? "currentColor" : "none"}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <use href="/sprite.svg#Star"></use>
+          </svg>
         </button>
+        ${
+          !sub.id.startsWith("guest")
+            ? `
+        <button class="del-toggle p-0.5 rounded hover:bg-red-500/20 text-red-500 transition-all opacity-0 group-hover:opacity-100" data-id="${sub.id}" title="Unsubscribe">
+            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <use href="/sprite.svg#Trash"></use>
+            </svg>
+        </button>
+        `
+            : ""
+        }
       </div>
     `;
 
     li.onclick = async (e) => {
-      if ((e.target as HTMLElement).closest(".fav-toggle")) return;
+      if (
+        (e.target as HTMLElement).closest(".fav-toggle") ||
+        (e.target as HTMLElement).closest(".del-toggle")
+      )
+        return;
 
-      // UI optimismo: hide badge
-      const badge = li.querySelector(".unread-badge");
-      if (badge) badge.classList.add("hidden");
+      if (window.location.pathname !== "/dashboard") {
+        window.location.href = `/dashboard?feed=${encodeURIComponent(sub.feeds.url)}&title=${encodeURIComponent(title)}&subId=${encodeURIComponent(sub.id)}`;
+        return;
+      }
 
       window.dispatchEvent(
         new CustomEvent("select-feed", {
@@ -432,24 +502,6 @@ const currentPath = Astro.url.pathname;
           },
         }),
       );
-
-      // Mark as read in backend
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      if (!session) return;
-      try {
-        fetch("/api/feeds/mark-read", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${session.access_token}`,
-          },
-          body: JSON.stringify({ subscriptionId: sub.id }),
-        });
-      } catch (err) {
-        console.error(err);
-      }
     };
 
     // Fav toggle logic
@@ -481,18 +533,49 @@ const currentPath = Astro.url.pathname;
       }
     });
 
+    // Delete toggle logic
+    const delToggle = li.querySelector(".del-toggle");
+    delToggle?.addEventListener("click", async (e) => {
+      e.stopPropagation();
+      if (!confirm("Are you sure you want to unsubscribe?")) return;
+
+      const subId = (delToggle as HTMLElement).dataset.id;
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (!session) return;
+
+      try {
+        const res = await fetch("/api/feeds/remove", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify({ subscriptionId: subId }),
+        });
+        if (res.ok) {
+          loadSidebarSubs();
+          window.dispatchEvent(new CustomEvent("feed-added")); // Trigger refresh across app
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    });
+
     subsList.appendChild(li);
   }
 
   // Subscribe to auth changes
   supabase.auth.onAuthStateChange((event, session) => {
-    if (session) {
+    if (session || isGuest) {
       loadSidebarSubs();
       loadUserInfo();
     }
   });
 
   async function loadUserInfo() {
+    if (isGuest) return;
     const {
       data: { session },
     } = await supabase.auth.getSession();
@@ -542,6 +625,7 @@ const currentPath = Astro.url.pathname;
   .sidebar-collapsed .sidebar-label,
   .sidebar-collapsed .unread-badge,
   .sidebar-collapsed .fav-toggle,
+  .sidebar-collapsed .del-toggle,
   .sidebar-collapsed .sidebar-icon-collapse,
   .sidebar-collapsed #refresh-subs {
     display: none !important;

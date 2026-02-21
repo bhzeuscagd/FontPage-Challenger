@@ -66,6 +66,24 @@ const initialMode = Astro.url.pathname.includes("register")
             id="login-panel"
             class="absolute top-0 right-0 w-1/2 h-full flex flex-col justify-center px-6 py-12 lg:px-8 transition-opacity duration-500"
         >
+            <a
+                href="/"
+                class="absolute top-6 right-6 text-sm font-semibold text-text-secondary hover:text-text-primary transition-colors no-underline flex items-center gap-1 z-30"
+            >
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    class="w-4 h-4"><path d="m15 18-6-6 6-6"></path></svg
+                >
+                {t("nav.home")}
+            </a>
             <div class="sm:mx-auto sm:w-full sm:max-w-sm">
                 <h2
                     class="text-center text-2xl font-bold tracking-tight text-text-primary"
@@ -147,6 +165,24 @@ const initialMode = Astro.url.pathname.includes("register")
             id="register-panel"
             class="absolute top-0 left-0 w-1/2 h-full flex flex-col justify-center px-6 py-12 lg:px-8 transition-opacity duration-500 opacity-0 pointer-events-none"
         >
+            <a
+                href="/"
+                class="absolute top-6 left-6 text-sm font-semibold text-text-secondary hover:text-text-primary transition-colors no-underline flex items-center gap-1 z-30"
+            >
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    class="w-4 h-4"><path d="m15 18-6-6 6-6"></path></svg
+                >
+                {t("nav.home")}
+            </a>
             <div class="sm:mx-auto sm:w-full sm:max-w-sm">
                 <h2
                     class="text-center text-2xl font-bold tracking-tight text-text-primary"

@@ -108,7 +108,7 @@ const t = useTranslations(lang);
                         />
                         <button
                             id="update-username-btn"
-                            class="px-4 py-2 bg-text-primary text-bg-primary text-sm font-medium hover:opacity-90 transition-opacity whitespace-nowrap"
+                            class="px-4 py-2 bg-text-primary text-bg-primary text-sm font-medium hover:opacity-90 transition-opacity whitespace-nowrap cursor-pointer"
                             >{t("profile.name_btn")}</button
                         >
                     </div>
@@ -273,6 +273,18 @@ const t = useTranslations(lang);
                 avatarInput.value = customAvatar;
             } else {
                 avatarImg.src = `https://api.dicebear.com/9.x/shapes/svg?seed=${currentEmail}`;
+            }
+        }
+
+        const {
+            data: { user },
+        } = await supabase.auth.getUser();
+        if (user) {
+            emailEl.textContent = user.email || "No email provided";
+            const profileName = document.getElementById("profile-name");
+            if (profileName) {
+                profileName.textContent =
+                    user.user_metadata?.full_name || "(Not set)";
             }
         }
     }

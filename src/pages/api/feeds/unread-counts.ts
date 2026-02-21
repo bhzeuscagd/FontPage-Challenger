@@ -3,6 +3,27 @@ import { fetchFeed } from '../../../lib/feed-parser';
 
 export const GET: APIRoute = async ({ request }) => {
   try {
+    const isGuestRequest = new URL(request.url).searchParams.get('guest') === 'true';
+
+    if (isGuestRequest) {
+      const guestFeeds = [
+        {
+          id: "guest-1",
+          url: "https://www.theverge.com/rss/index.xml"
+        }
+      ];
+
+      const counts = await Promise.all(guestFeeds.map(async (f) => {
+        try {
+          const feed = await fetchFeed(f.url);
+          return { subscriptionId: f.id, unreadCount: feed.items.length };
+        } catch (err) {
+          return { subscriptionId: f.id, unreadCount: 0 };
+        }
+      }));
+      return new Response(JSON.stringify(counts), { status: 200 });
+    }
+
     const authHeader = request.headers.get('Authorization');
     const token = authHeader?.split(' ')[1];
 
@@ -36,6 +57,20 @@ export const GET: APIRoute = async ({ request }) => {
 
     if (subsError) throw subsError;
 
+    // 1.5 Fetch user's read items
+    const { data: readStates, error: readStatesError } = await userSupabase
+      .from('user_item_states')
+      .select('is_read, feed_items(guid)')
+      .eq('user_id', user.id)
+      .eq('is_read', true);
+      
+    if (readStatesError) throw readStatesError;
+
+    // Create a set of guids that are marked as read
+    const readGuids = new Set(
+      (readStates || []).map((rs: any) => rs.feed_items?.guid).filter(Boolean)
+    );
+
     // 2. Fetch and calculate unread counts for each feed
     const counts = await Promise.all((subs || []).map(async (sub: any) => {
       try {
@@ -44,6 +79,7 @@ export const GET: APIRoute = async ({ request }) => {
         
         const lastRead = new Date(sub.last_read_at || 0).getTime();
         const unreadItems = feed.items.filter((item: any) => {
+          if (readGuids.has(item.guid)) return false;
           return new Date(item.pubDate).getTime() > lastRead;
         });
 

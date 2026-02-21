@@ -174,11 +174,17 @@
     font-size: 1.25rem;
   }
   & a {
-    color: var(--color-link, var(--color-accent));
+    color: var(--color-text-primary);
     text-decoration: underline;
+    text-decoration-thickness: 1.5px;
+    text-underline-offset: 3px;
+    font-weight: 600;
+    font-style: italic;
+    transition: all 0.2s ease;
   }
   & a:hover {
-    opacity: 0.7;
+    color: var(--color-accent);
+    text-decoration-color: var(--color-accent);
   }
   & ul,
   & ol {

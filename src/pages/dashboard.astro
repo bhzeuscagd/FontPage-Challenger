@@ -97,6 +97,7 @@ const t = useTranslations(lang);
     let isGuest: boolean = false;
     let subscriptions: any[] = [];
     let currentFeedUrl: string = "all";
+    let currentSubscriptionId: string | undefined = undefined;
     let viewMode: string = "cards"; // cards, list, compact
     let userBookmarks: Set<string> = new Set();
 
@@ -110,22 +111,6 @@ const t = useTranslations(lang);
                 title: "The Verge",
             },
         },
-        {
-            id: "guest-2",
-            is_favorite: true,
-            feeds: {
-                url: "https://techcrunch.com/feed/",
-                title: "TechCrunch",
-            },
-        },
-        {
-            id: "guest-3",
-            is_favorite: true,
-            feeds: {
-                url: "https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml",
-                title: "NYT Top Stories",
-            },
-        },
     ];
 
     async function init() {
@@ -137,34 +122,53 @@ const t = useTranslations(lang);
         if (isGuest) {
             if (params.get("guest") === "true") {
                 localStorage.setItem("frontpage_guest", "true");
-                window.history.replaceState(
-                    {},
-                    document.title,
-                    window.location.pathname,
-                );
+                const url = new URL(window.location.href);
+                url.searchParams.delete("guest");
+                window.history.replaceState({}, "", url);
             }
             currentSession = { guest: true };
             if (userInfo) userInfo.textContent = "Guest User";
-            loadSubscriptions(); // Sync call for guest
-            await loadFeed("all", "All Subscriptions");
-            return;
+        } else {
+            const {
+                data: { session },
+            } = await supabase.auth.getSession();
+            if (!session) {
+                window.location.href = "/login";
+                return;
+            }
+            currentSession = session;
+
+            if (userInfo && session.user.email)
+                userInfo.textContent = session.user.email;
+            // Load bookmarks in background (non-blocking)
+            loadUserBookmarks().catch(() => {});
         }
 
-        const {
-            data: { session },
-        } = await supabase.auth.getSession();
-        if (!session) {
-            window.location.href = "/login";
-            return;
-        }
-        currentSession = session;
-
-        if (userInfo && session.user.email)
-            userInfo.textContent = session.user.email;
-        // Load bookmarks in background (non-blocking)
-        loadUserBookmarks().catch(() => {});
         await loadSubscriptions();
-        await loadFeed("all", "All Subscriptions");
+
+        // Handle deep-linking to a specific feed via sidebar or URL params
+        const feedUrl = params.get("feed");
+        const feedTitle = params.get("title");
+        const subId = params.get("subId");
+
+        if (feedUrl && feedTitle) {
+            currentFeedUrl = feedUrl;
+            currentSubscriptionId = subId || undefined;
+            // Delay loadFeed slightly so DOM and tabs are ready
+            setTimeout(() => {
+                loadFeed(currentFeedUrl, feedTitle, currentSubscriptionId);
+            }, 50);
+
+            // Clean up the URL
+            const url = new URL(window.location.href);
+            url.searchParams.delete("feed");
+            url.searchParams.delete("title");
+            url.searchParams.delete("subId");
+            window.history.replaceState({}, "", url);
+        } else {
+            currentFeedUrl = "all";
+            await loadFeed("all", "All Subscriptions");
+        }
     }
 
     async function loadUserBookmarks() {
@@ -262,6 +266,9 @@ const t = useTranslations(lang);
 
             subsContainer.appendChild(btn);
         });
+
+        // After rendering, ensure the correct tab is visibly selected
+        updateTabsUI(currentFeedUrl);
     }
 
     async function loadFeed(
@@ -271,24 +278,8 @@ const t = useTranslations(lang);
     ) {
         if (!newsGrid) return;
         currentFeedUrl = url;
+        currentSubscriptionId = subscriptionId;
         updateTabsUI(url);
-
-        // Mark as read if subscription ID is present
-        if (subscriptionId && !isGuest) {
-            try {
-                fetch("/api/feeds/mark-read", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization: `Bearer ${currentSession.access_token}`,
-                    },
-                    body: JSON.stringify({ subscriptionId }),
-                });
-                window.dispatchEvent(new CustomEvent("unread-counts-changed"));
-            } catch (err) {
-                console.error(err);
-            }
-        }
 
         newsGrid.innerHTML = `
             <div class="col-span-full flex items-center justify-center p-20 text-text-secondary opacity-50">
@@ -312,8 +303,8 @@ const t = useTranslations(lang);
                 results.forEach((feed: any, index) => {
                     const items = (feed.items || []).map((item: any) => ({
                         ...item,
-                        feedTitle: GUEST_FEEDS[index].feeds.title,
-                        feedUrl: GUEST_FEEDS[index].feeds.url,
+                        feedTitle: GUEST_FEEDS[index]?.feeds?.title,
+                        feedUrl: GUEST_FEEDS[index]?.feeds?.url,
                     }));
                     allItems = allItems.concat(items);
                 });
@@ -365,7 +356,7 @@ const t = useTranslations(lang);
                 class="news-card group flex flex-col no-underline border-b-[3px] border-text-primary border-r-[3px] nth-[3n]:border-r-0 relative"
                 data-guid="${item.guid}"
             >
-                <a href="/preview?url=${encodeURIComponent(item.link)}&feedUrl=${encodeURIComponent(itemFeedUrl)}" class="flex flex-col flex-1 no-underline">
+                <a href="/preview?url=${encodeURIComponent(item.link)}&feedUrl=${encodeURIComponent(itemFeedUrl)}" class="flex flex-col flex-1 no-underline article-link" data-item='${JSON.stringify(item).replace(/'/g, "&apos;")}' data-feed-url="${itemFeedUrl}">
                     <div class="card-image-container p-5 pb-0">
                         <div class="aspect-16/10 overflow-hidden bg-bg-secondary rounded-sm">
                             <img 
@@ -399,7 +390,7 @@ const t = useTranslations(lang);
                         data-feed-url="${itemFeedUrl}"
                     >
                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="${isBookmarked ? "currentColor" : "none"}" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/>
+                            <use href="/sprite.svg#Bookmark"></use>
                         </svg>
                     </button>
                 </div>
@@ -407,6 +398,30 @@ const t = useTranslations(lang);
         `;
             })
             .join("");
+
+        // Add event listeners for article links to mark as read
+        document.querySelectorAll(".article-link").forEach((link) => {
+            link.addEventListener("click", (e) => {
+                if (isGuest) return;
+                try {
+                    const l = e.currentTarget as HTMLAnchorElement;
+                    const itemData = JSON.parse(l.dataset.item || "{}");
+                    const feedUrl = l.dataset.feedUrl;
+
+                    fetch("/api/feeds/mark-item-read", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${currentSession.access_token}`,
+                        },
+                        body: JSON.stringify({ item: itemData, feedUrl }),
+                        keepalive: true,
+                    }).catch(() => {});
+                } catch (err) {
+                    console.error("Failed to mark read", err);
+                }
+            });
+        });
 
         // Add event listeners for bookmark buttons
         document.querySelectorAll(".bookmark-btn").forEach((btn) => {
@@ -489,6 +504,24 @@ const t = useTranslations(lang);
                 );
             }
         });
+
+        // Update menu items visibility
+        const unsubBtn = document.getElementById("btn-unsubscribe");
+        if (unsubBtn) {
+            if (activeUrl === "all") {
+                unsubBtn.style.display = "none";
+                if (unsubBtn.nextElementSibling) {
+                    (unsubBtn.nextElementSibling as HTMLElement).style.display =
+                        "none";
+                }
+            } else {
+                unsubBtn.style.display = "flex";
+                if (unsubBtn.nextElementSibling) {
+                    (unsubBtn.nextElementSibling as HTMLElement).style.display =
+                        "block";
+                }
+            }
+        }
     }
 
     // --- Event Listeners ---
@@ -506,10 +539,61 @@ const t = useTranslations(lang);
         loadFeed(url, title, subscriptionId);
     });
 
-    window.addEventListener("feed-action", (e: any) => {
+    window.addEventListener("feed-action", async (e: any) => {
         const { action } = e.detail;
         if (action === "refresh") {
-            loadFeed(currentFeedUrl, "Refreshing...");
+            loadFeed(currentFeedUrl, "Refreshing...", currentSubscriptionId);
+        } else if (action === "mark-read") {
+            if (currentSubscriptionId && !isGuest) {
+                try {
+                    await fetch("/api/feeds/mark-read", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${currentSession.access_token}`,
+                        },
+                        body: JSON.stringify({
+                            subscriptionId: currentSubscriptionId,
+                        }),
+                    });
+                    window.dispatchEvent(
+                        new CustomEvent("unread-counts-changed"),
+                    );
+                } catch (err) {
+                    console.error(err);
+                }
+            }
+        } else if (action === "unsubscribe") {
+            if (currentSubscriptionId && !isGuest) {
+                if (
+                    confirm(
+                        "Are you sure you want to unsubscribe from this feed?",
+                    )
+                ) {
+                    try {
+                        const res = await fetch("/api/feeds/remove", {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                                Authorization: `Bearer ${currentSession.access_token}`,
+                            },
+                            body: JSON.stringify({
+                                subscriptionId: currentSubscriptionId,
+                            }),
+                        });
+                        if (res.ok) {
+                            window.dispatchEvent(new CustomEvent("feed-added")); // Re-triggers loadSubscriptions in Sidebar
+                            loadFeed("all", "All Subscriptions");
+                        }
+                    } catch (err) {
+                        console.error(err);
+                    }
+                }
+            } else {
+                if (isGuest) {
+                    alert("Please sign in to manage subscriptions.");
+                }
+            }
         } else if (action.startsWith("view-")) {
             const mode = action.replace("view-", "");
             setViewMode(mode);

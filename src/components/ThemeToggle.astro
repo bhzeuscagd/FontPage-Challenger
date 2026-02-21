@@ -1,42 +1,98 @@
 ---
 import Icon from "./Icon.astro";
+import { defaultLang } from "../i18n/ui";
+
+const langCookie = Astro.cookies.get("lang")?.value;
+const currentLang =
+    langCookie === "es" || langCookie === "en" ? langCookie : defaultLang;
+const isEs = currentLang === "es";
 ---
 
-<button
-    id="theme-toggle"
-    class="group fixed bottom-[4.5rem] left-0 z-9999 h-11 flex items-center bg-bg-primary border-2 border-l-0 border-text-primary rounded-r-xl cursor-pointer transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] transform -translate-x-[calc(100%-3.2rem)] hover:translate-x-0 shadow-[4px_0_12px_rgba(0,0,0,0.1)] overflow-hidden pl-4 pr-2 w-auto"
-    aria-label="Toggle Theme"
+<div
+    class="group fixed bottom-6 right-0 z-9999 flex flex-col transform translate-x-[calc(100%-3.2rem)] hover:translate-x-0 transition-transform duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]"
 >
-    <span
-        class="text-xs font-mono font-bold text-text-primary tracking-widest whitespace-nowrap mr-3"
-        >THEME</span
-    >
     <div
-        class="w-8 h-8 rounded-lg bg-text-primary text-bg-primary flex items-center justify-center shrink-0 overflow-hidden relative group-hover:scale-90 transition-transform"
+        class="bg-bg-primary border-2 border-r-0 border-text-primary rounded-l-xl shadow-[-4px_0_12px_rgba(0,0,0,0.1)] overflow-hidden flex flex-col mt-2"
     >
-        <Icon name="Sun" size={16} class="icon-sun" />
-        <Icon name="Moon" size={16} class="icon-moon" />
+        <!-- Theme Toggle -->
+        <button
+            id="theme-toggle"
+            class="h-11 flex items-center pl-3 pr-2 w-full hover:bg-text-primary/5 transition-colors cursor-pointer"
+            aria-label="Toggle Theme"
+        >
+            <div
+                class="w-8 h-8 rounded-lg bg-text-primary text-bg-primary flex items-center justify-center shrink-0 overflow-hidden relative group-hover/theme:scale-95 transition-transform group/theme"
+            >
+                <Icon name="Sun" size={16} class="icon-sun" />
+                <Icon name="Moon" size={16} class="icon-moon" />
+            </div>
+            <span
+                class="text-xs font-mono font-bold text-text-primary tracking-widest whitespace-nowrap ml-3"
+                >THEME</span
+            >
+        </button>
+
+        <div class="h-[2px] w-full bg-text-primary/10"></div>
+
+        <!-- Language Toggle -->
+        <!-- Language Toggle -->
+        <button
+            id="lang-toggle"
+            class="h-11 flex items-center pl-3 pr-2 w-full hover:bg-text-primary/5 transition-colors cursor-pointer"
+            aria-label="Toggle Language"
+            data-current-lang={isEs ? "es" : "en"}
+        >
+            <div
+                class="w-8 h-8 rounded-lg bg-text-primary text-bg-primary flex items-center justify-center shrink-0 group-hover/lang:scale-95 transition-transform group/lang"
+            >
+                <Icon name="Globe" size={16} />
+            </div>
+            <span
+                class="text-xs font-mono font-bold text-text-primary tracking-widest uppercase ml-3"
+            >
+                {isEs ? "ESP" : "ENG"}
+            </span>
+        </button>
     </div>
-</button>
+</div>
 
 <script>
-    const toggle = document.getElementById("theme-toggle");
-    const html = document.documentElement;
+    function setupToggles() {
+        const themeBtn = document.getElementById("theme-toggle");
+        const html = document.documentElement;
 
-    // Load saved theme or default to light
-    const saved = localStorage.getItem("theme");
-    if (saved === "dark") {
-        html.setAttribute("data-theme", "dark");
+        /* Theme */
+        const savedTheme = localStorage.getItem("theme");
+        if (savedTheme === "dark") {
+            html.setAttribute("data-theme", "dark");
+        }
+
+        if (themeBtn) {
+            themeBtn.onclick = () => {
+                const isDark = html.getAttribute("data-theme") === "dark";
+                if (isDark) {
+                    html.removeAttribute("data-theme");
+                    localStorage.setItem("theme", "light");
+                } else {
+                    html.setAttribute("data-theme", "dark");
+                    localStorage.setItem("theme", "dark");
+                }
+            };
+        }
+
+        /* Language */
+        const langToggle = document.getElementById("lang-toggle");
+        if (langToggle) {
+            langToggle.onclick = () => {
+                const current = langToggle.getAttribute("data-current-lang");
+                const newLang = current === "es" ? "en" : "es";
+                document.cookie = `lang=${newLang}; path=/; max-age=31536000`;
+                localStorage.setItem("preferred-language", newLang);
+                window.location.reload();
+            };
+        }
     }
 
-    toggle?.addEventListener("click", () => {
-        const isDark = html.getAttribute("data-theme") === "dark";
-        if (isDark) {
-            html.removeAttribute("data-theme");
-            localStorage.setItem("theme", "light");
-        } else {
-            html.setAttribute("data-theme", "dark");
-            localStorage.setItem("theme", "dark");
-        }
-    });
+    setupToggles();
+    document.addEventListener("astro:after-swap", setupToggles);
 </script>

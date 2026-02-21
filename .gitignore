@@ -28,3 +28,7 @@ aprendizaje/
 
 # requirements
 Requisitos/
+
+# markdown files
+*.md
+!README.md

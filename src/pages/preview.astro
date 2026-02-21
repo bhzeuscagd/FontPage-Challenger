@@ -173,6 +173,13 @@ const shareUrl = Astro.url.href;
                         </div>
                     </div>
                 </div>
+
+                {/* Inject item data for client-side marking as read */}
+                <script
+                    id="article-data"
+                    type="application/json"
+                    set:html={JSON.stringify({ item, feedUrl })}
+                />
             </section>
         ) : (
             <section class="flex flex-col items-center justify-center min-h-[60vh] text-center">
@@ -242,4 +249,62 @@ const shareUrl = Astro.url.href;
             }
         }
     });
+
+    // Mark article as read automatically
+    import { supabase } from "../lib/supabase";
+
+    async function markArticleAsRead() {
+        const dataScript = document.getElementById("article-data");
+        if (!dataScript) return;
+
+        try {
+            const { item, feedUrl } = JSON.parse(
+                dataScript.textContent || "{}",
+            );
+            if (!item || !feedUrl) return;
+
+            const {
+                data: { session },
+            } = await supabase.auth.getSession();
+
+            const isGuest =
+                new URLSearchParams(window.location.search).get("guest") ===
+                    "true" ||
+                localStorage.getItem("frontpage_guest") === "true";
+
+            if (!session) {
+                if (isGuest && item.guid) {
+                    const guestRead = JSON.parse(
+                        localStorage.getItem("guest_read_items") || "[]",
+                    );
+                    if (!guestRead.includes(item.guid)) {
+                        guestRead.push(item.guid);
+                        localStorage.setItem(
+                            "guest_read_items",
+                            JSON.stringify(guestRead),
+                        );
+                        window.dispatchEvent(
+                            new CustomEvent("frontpage-auth-changed"),
+                        );
+                    }
+                }
+                return;
+            }
+
+            await fetch("/api/feeds/mark-item-read", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${session.access_token}`,
+                },
+                body: JSON.stringify({ item, feedUrl }),
+                keepalive: true,
+            });
+        } catch (err) {
+            console.error("Failed to auto-mark as read", err);
+        }
+    }
+
+    // Run when client loads
+    markArticleAsRead();
 </script>
