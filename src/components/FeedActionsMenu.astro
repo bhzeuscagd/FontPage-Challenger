@@ -11,16 +11,26 @@ const t = useTranslations(lang);
 <div class="relative inline-block text-left" id="feed-actions-menu">
     <button
         id="menu-toggle"
-        class="text-text-secondary hover:bg-text-primary hover:text-bg-primary transition-all p-1 px-3 rounded-md flex items-center gap-2 text-xs border border-text-secondary/20 shadow-sm"
+        class="text-text-secondary hover:bg-text-primary hover:text-bg-primary transition-all p-2 md:py-1.5 md:px-3 rounded-md flex items-center justify-center gap-2 text-xs border border-text-secondary/20 shadow-sm min-w-8 h-8 md:h-auto md:min-w-0"
+        aria-label={t("menu.options")}
+        title={t("menu.options")}
     >
-        <Icon name="Plus" size={14} />
-        {t("menu.options")}
-        <Icon name="Chevron" size={12} class="rotate-90 opacity-50" />
+        <!-- Mobile View (Icon Only) -->
+        <div class="md:hidden flex items-center justify-center">
+            <Icon name="Settings" size={16} />
+        </div>
+
+        <!-- Desktop View (Text + Icons) -->
+        <div class="hidden md:flex items-center gap-2">
+            <Icon name="Plus" size={14} />
+            {t("menu.options")}
+            <Icon name="Chevron" size={12} class="rotate-90 opacity-50" />
+        </div>
     </button>
 
     <div
         id="menu-dropdown"
-        class="hidden absolute right-0 mt-2 w-48 origin-top-right rounded-md bg-bg-primary border border-text-primary/20 shadow-xl z-50 overflow-hidden"
+        class="hidden absolute right-0 mt-2 w-48 origin-top-right rounded-md bg-bg-primary border border-text-primary/20 shadow-xl z-80 overflow-hidden"
     >
         <div class="py-1">
             <button

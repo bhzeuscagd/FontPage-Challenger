@@ -15,13 +15,15 @@ const t = useTranslations(lang);
     type="WebApplication"
     lang={lang}
 >
-    <div class="mt-25 pl-10">
-        <h1 class="text-6xl font-serif text-text-primary">
+    <div class="mt-16 md:mt-25 px-6 md:px-12 lg:px-16">
+        <h1 class="text-5xl md:text-6xl font-serif text-text-primary">
             {t("search.title")}
         </h1>
     </div>
 
-    <div class="flex items-center gap-6 pb-4 pl-10 pr-10">
+    <div
+        class="flex flex-col md:flex-row md:items-center gap-4 md:gap-6 pb-4 px-6 md:px-12 lg:px-16 mt-6 md:mt-0 relative z-70"
+    >
         <div class="flex-1 relative">
             <input
                 id="search-input"
@@ -298,11 +300,19 @@ const t = useTranslations(lang);
         overflow: hidden;
     }
     .view-list .card-image-container {
-        width: 160px;
-        min-width: 160px;
-        max-width: 160px;
+        display: block !important;
+        width: 100px;
+        min-width: 100px;
+        max-width: 100px;
         padding: 10px !important;
         flex-shrink: 0;
+    }
+    @media (min-width: 768px) {
+        .view-list .card-image-container {
+            width: 160px;
+            min-width: 160px;
+            max-width: 160px;
+        }
     }
     .view-list .card-image-container > div {
         aspect-ratio: auto !important;
@@ -343,8 +353,13 @@ const t = useTranslations(lang);
         flex-direction: row !important;
         align-items: center;
         border-right: none !important;
-        padding: 6px 16px;
+        padding: 12px 16px;
         min-height: auto;
+    }
+    @media (min-width: 768px) {
+        .view-compact .news-card {
+            padding: 6px 16px;
+        }
     }
     .view-compact .news-card > a {
         flex-direction: row !important;
@@ -352,25 +367,56 @@ const t = useTranslations(lang);
         min-width: 0;
         align-items: center;
         gap: 12px;
+        width: 100%;
     }
     .view-compact .card-image-container {
-        display: none !important;
+        display: block !important;
+        width: 48px;
+        min-width: 48px;
+        max-width: 48px;
+        padding: 0 !important;
+        flex-shrink: 0;
+    }
+    @media (min-width: 768px) {
+        .view-compact .card-image-container {
+            display: none !important;
+        }
+    }
+    .view-compact .card-image-container > div {
+        aspect-ratio: 1 !important;
+        height: 48px;
+        border-radius: 6px;
     }
     .view-compact .news-card > a > div:last-child {
         flex: 1;
         min-width: 0;
-        padding: 4px 0 !important;
+        padding: 0 !important;
         display: flex !important;
-        flex-direction: row !important;
-        align-items: center;
-        gap: 12px;
+        flex-direction: column !important;
+        align-items: flex-start;
+        gap: 4px;
+        width: 100%;
+    }
+    @media (min-width: 768px) {
+        .view-compact .news-card > a > div:last-child {
+            flex-direction: row !important;
+            align-items: center;
+            gap: 12px;
+            padding: 4px 0 !important;
+        }
     }
     .view-compact .card-title {
-        font-size: 0.875rem;
+        font-size: 0.95rem;
         margin-bottom: 0 !important;
         flex: 1;
         min-width: 0;
-        -webkit-line-clamp: 1;
+        -webkit-line-clamp: 2;
+    }
+    @media (min-width: 768px) {
+        .view-compact .card-title {
+            font-size: 0.875rem;
+            -webkit-line-clamp: 1;
+        }
     }
     .view-compact .card-meta {
         flex-shrink: 0;
@@ -385,8 +431,14 @@ const t = useTranslations(lang);
         align-items: center;
         align-self: center;
         gap: 10px;
-        padding-right: 8px;
-        margin-left: 16px;
+        padding: 0;
+        margin-left: 8px;
         flex-shrink: 0;
+    }
+    @media (min-width: 768px) {
+        .view-compact .card-actions {
+            margin-left: 16px;
+            padding: 0 8px 0 0;
+        }
     }
 </style>

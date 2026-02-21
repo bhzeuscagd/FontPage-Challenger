@@ -1,4 +1,4 @@
-# Frontpage — Christian (CAGD)
+# Frontpage — @Bhzeuscagd (CAGD)
 
 A customizable content aggregator that pulls RSS and Atom feeds into one well-designed reading dashboard. Built with Astro, React, and Supabase.
 

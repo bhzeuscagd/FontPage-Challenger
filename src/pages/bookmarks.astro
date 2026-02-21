@@ -16,14 +16,16 @@ const t = useTranslations(lang);
     type="WebApplication"
     lang={lang}
 >
-    <div class="mt-25 pl-10">
-        <h1 class="text-6xl font-serif text-text-primary">
+    <div class="mt-16 md:mt-25 px-6 md:px-12 lg:px-16">
+        <h1 class="text-5xl md:text-6xl font-serif text-text-primary">
             {t("bookmarks.title")}
         </h1>
     </div>
 
     <!-- Subscriptions filter tabs -->
-    <div class="flex items-center gap-6 pb-4 pl-10">
+    <div
+        class="flex flex-col md:flex-row md:items-center gap-4 md:gap-6 pb-4 px-6 md:px-12 lg:px-16 mt-6 md:mt-0 relative z-70"
+    >
         <div class="relative" id="subs-dropdown-wrapper">
             <button
                 id="subs-dropdown-btn"
@@ -50,15 +52,18 @@ const t = useTranslations(lang);
             </div>
         </div>
 
-        <div id="saved-tabs" class="flex items-center gap-6">
+        <div
+            id="saved-tabs"
+            class="flex items-center gap-6 overflow-x-auto pb-2 -mb-2 w-full md:w-auto"
+        >
             <button
-                class="tab-btn text-xl font-medium text-text-primary border-b-[3px] border-text-primary pb-1"
+                class="tab-btn shrink-0 text-xl font-medium text-text-primary border-b-[3px] border-text-primary pb-1"
                 data-filter="all">{t("dashboard.all")}</button
             >
             <!-- Favorite source tabs will be injected here -->
         </div>
 
-        <div class="ml-auto pr-10">
+        <div class="shrink-0 ml-auto">
             <FeedActionsMenu />
         </div>
     </div>
@@ -493,11 +498,19 @@ const t = useTranslations(lang);
         overflow: hidden;
     }
     .view-list .card-image-container {
-        width: 160px;
-        min-width: 160px;
-        max-width: 160px;
+        display: block !important;
+        width: 100px;
+        min-width: 100px;
+        max-width: 100px;
         padding: 10px !important;
         flex-shrink: 0;
+    }
+    @media (min-width: 768px) {
+        .view-list .card-image-container {
+            width: 160px;
+            min-width: 160px;
+            max-width: 160px;
+        }
     }
     .view-list .card-image-container > div {
         aspect-ratio: auto !important;
@@ -506,13 +519,23 @@ const t = useTranslations(lang);
     .view-list .news-card > a > div:last-child {
         flex: 1;
         min-width: 0;
-        padding: 10px 12px !important;
+        padding: 12px 16px !important;
         overflow: hidden;
+    }
+    @media (min-width: 768px) {
+        .view-list .news-card > a > div:last-child {
+            padding: 10px 12px !important;
+        }
     }
     .view-list .card-title {
         font-size: 0.95rem;
         margin-bottom: 4px !important;
-        -webkit-line-clamp: 2;
+        -webkit-line-clamp: 3;
+    }
+    @media (min-width: 768px) {
+        .view-list .card-title {
+            -webkit-line-clamp: 2;
+        }
     }
     .view-list .bookmark-btn {
         position: relative !important;
@@ -536,11 +559,18 @@ const t = useTranslations(lang);
         right: auto !important;
         flex-direction: row !important;
         align-items: center;
-        align-self: center;
+        align-self: flex-start;
         gap: 10px;
-        padding-right: 12px;
-        margin-left: 12px;
+        padding: 0 16px 12px 16px;
+        margin-left: 0;
         flex-shrink: 0;
+    }
+    @media (min-width: 768px) {
+        .view-list .card-actions {
+            align-self: center;
+            padding: 0 12px 0 0;
+            margin-left: 12px;
+        }
     }
 
     /* View Mode: Compact */
@@ -550,18 +580,33 @@ const t = useTranslations(lang);
         grid-template-columns: none !important;
     }
     .view-compact .news-card {
-        flex-direction: row !important;
-        align-items: center;
+        flex-direction: column !important;
+        align-items: flex-start;
         border-right: none !important;
-        padding: 6px 16px;
+        padding: 12px 16px;
         min-height: auto;
     }
+    @media (min-width: 768px) {
+        .view-compact .news-card {
+            flex-direction: row !important;
+            align-items: center;
+            padding: 6px 16px;
+        }
+    }
     .view-compact .news-card > a {
-        flex-direction: row !important;
+        flex-direction: column !important;
         flex: 1;
         min-width: 0;
-        align-items: center;
-        gap: 12px;
+        align-items: flex-start;
+        gap: 8px;
+        width: 100%;
+    }
+    @media (min-width: 768px) {
+        .view-compact .news-card > a {
+            flex-direction: row !important;
+            align-items: center;
+            gap: 12px;
+        }
     }
     .view-compact .card-image-container {
         display: none !important;
@@ -569,18 +614,33 @@ const t = useTranslations(lang);
     .view-compact .news-card > a > div:last-child {
         flex: 1;
         min-width: 0;
-        padding: 4px 0 !important;
+        padding: 0 !important;
         display: flex !important;
-        flex-direction: row !important;
-        align-items: center;
-        gap: 12px;
+        flex-direction: column !important;
+        align-items: flex-start;
+        gap: 8px;
+        width: 100%;
+    }
+    @media (min-width: 768px) {
+        .view-compact .news-card > a > div:last-child {
+            flex-direction: row !important;
+            align-items: center;
+            gap: 12px;
+            padding: 4px 0 !important;
+        }
     }
     .view-compact .card-title {
-        font-size: 0.875rem;
+        font-size: 0.95rem;
         margin-bottom: 0 !important;
         flex: 1;
         min-width: 0;
-        -webkit-line-clamp: 1;
+        -webkit-line-clamp: 3;
+    }
+    @media (min-width: 768px) {
+        .view-compact .card-title {
+            font-size: 0.875rem;
+            -webkit-line-clamp: 1;
+        }
     }
     .view-compact .card-meta {
         flex-shrink: 0;
@@ -593,10 +653,17 @@ const t = useTranslations(lang);
         right: auto !important;
         flex-direction: row !important;
         align-items: center;
-        align-self: center;
+        align-self: flex-start;
         gap: 10px;
-        padding-right: 8px;
-        margin-left: 16px;
+        padding: 12px 0 0 0;
+        margin-left: 0;
         flex-shrink: 0;
+    }
+    @media (min-width: 768px) {
+        .view-compact .card-actions {
+            align-self: center;
+            padding: 0 8px 0 0;
+            margin-left: 16px;
+        }
     }
 </style>

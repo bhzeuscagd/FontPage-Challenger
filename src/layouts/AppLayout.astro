@@ -102,6 +102,17 @@ const schemaValue = {
                     document.documentElement.setAttribute("data-theme", "dark");
                 }
             })();
+
+            document.addEventListener("DOMContentLoaded", () => {
+                const btn = document.getElementById("mobile-menu-btn");
+                const sidebar = document.getElementById("app-sidebar");
+                if (btn && sidebar) {
+                    btn.addEventListener("click", () => {
+                        sidebar.classList.toggle("-translate-x-full");
+                        sidebar.classList.toggle("translate-x-0");
+                    });
+                }
+            });
         </script>
     </head>
     <body
@@ -111,10 +122,35 @@ const schemaValue = {
         <Sidebar />
 
         <!-- Vertical line separator -->
-        <div class="w-[3px] bg-text-primary self-stretch"></div>
+        <div class="hidden md:block w-[3px] bg-text-primary self-stretch"></div>
 
         <!-- Main Content Area -->
         <main class="flex-1 relative overflow-hidden flex flex-col">
+            <!-- Mobile Header -->
+            <header
+                class="md:hidden flex items-center justify-between px-4 py-3 border-b-[3px] border-text-primary bg-bg-primary z-40 shrink-0 relative"
+            >
+                <a
+                    href="/dashboard"
+                    class="font-serif text-2xl font-bold text-text-primary no-underline"
+                    >Frontpage</a
+                >
+                <button
+                    id="mobile-menu-btn"
+                    class="p-2 text-text-primary hover:bg-text-primary/10 transition-colors"
+                >
+                    <svg
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2.5"
+                        ><path d="M4 6h16M4 12h16M4 18h16"></path></svg
+                    >
+                </button>
+            </header>
+
             <div class="flex-1 overflow-y-auto">
                 <slot />
             </div>

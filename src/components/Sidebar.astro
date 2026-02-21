@@ -21,10 +21,10 @@ const currentPath = Astro.url.pathname;
 
 <aside
   id="app-sidebar"
-  class="w-56 flex flex-col h-full py-6 transition-all duration-300 overflow-hidden"
+  class="w-56 flex flex-col h-full py-6 transition-all duration-300 overflow-hidden shrink-0 fixed inset-y-0 left-0 z-100 bg-bg-primary border-r-[3px] border-text-primary md:border-none md:relative -translate-x-full md:translate-x-0"
 >
   <!-- Logo -->
-  <div class="px-6 mb-6">
+  <div class="px-6 mb-6 flex items-center justify-between">
     <a
       href="/dashboard"
       class="flex items-center gap-2 text-text-primary no-underline"
@@ -35,6 +35,21 @@ const currentPath = Astro.url.pathname;
         >Frontpage</span
       >
     </a>
+    <button
+      id="mobile-close-btn"
+      class="md:hidden p-1 text-text-primary hover:bg-text-primary/10 transition-colors"
+    >
+      <Icon name="Search" class="hidden" size={20} />
+      <!-- Need a close icon, so let's quickly inline a simple X -->
+      <svg
+        width="20"
+        height="20"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2.5"><path d="M18 6 6 18M6 6l12 12"></path></svg
+      >
+    </button>
   </div>
 
   <!-- Horizontal line separator -->
@@ -610,6 +625,18 @@ const currentPath = Astro.url.pathname;
   refreshBtn?.addEventListener("click", loadSidebarSubs);
   window.addEventListener("feed-added", loadSidebarSubs);
   window.addEventListener("unread-counts-changed", loadSidebarSubs);
+
+  // Close sidebar on mobile
+  const mobileCloseBtn = document.getElementById("mobile-close-btn");
+  if (mobileCloseBtn) {
+    mobileCloseBtn.addEventListener("click", () => {
+      const sidebar = document.getElementById("app-sidebar");
+      if (sidebar) {
+        sidebar.classList.add("-translate-x-full");
+        sidebar.classList.remove("translate-x-0");
+      }
+    });
+  }
 
   loadSidebarSubs();
   loadUserInfo();

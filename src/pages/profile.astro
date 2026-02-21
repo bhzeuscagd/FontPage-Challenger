@@ -427,6 +427,7 @@ const t = useTranslations(lang);
 
     logoutBtn.addEventListener("click", async () => {
         await supabase.auth.signOut();
+        localStorage.removeItem("frontpage_guest");
         window.location.href = "/login";
     });
 
