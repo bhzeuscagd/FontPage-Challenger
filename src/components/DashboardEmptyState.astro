@@ -1,0 +1,209 @@
+---
+import Icon from "./Icon.astro";
+---
+
+<div
+    class="flex flex-col items-center justify-center min-h-[70vh] px-8 text-center animate-in fade-in slide-in-from-bottom-4 duration-1000"
+>
+    <div class="max-w-4xl">
+        <p
+            class="font-mono text-xs md:text-sm tracking-[0.4em] text-text-secondary uppercase mb-8 opacity-60"
+        >
+            Welcome to Frontpage
+        </p>
+        <h2
+            class="font-serif text-5xl md:text-7xl lg:text-8xl text-text-primary leading-[0.9] tracking-tighter mb-10"
+        >
+            Your personal <br /> frontpage starts here.
+        </h2>
+        <p
+            class="font-serif text-lg md:text-2xl text-text-secondary max-w-2xl mx-auto mb-16 leading-relaxed italic"
+        >
+            "The reader for people who care about the news"
+        </p>
+
+        <!-- Suggested Feeds -->
+        <div
+            class="grid grid-cols-1 md:grid-cols-3 gap-8 text-left border-t border-text-primary/10 pt-16"
+        >
+            <div class="col-span-full mb-4">
+                <h3
+                    class="text-xs font-mono uppercase tracking-widest text-text-secondary opacity-50"
+                >
+                    Quick Start Suggestions
+                </h3>
+            </div>
+
+            <div
+                class="flex flex-col group border-t-4 border-text-primary pt-6"
+            >
+                <div
+                    class="aspect-video bg-bg-secondary overflow-hidden relative mb-6"
+                >
+                    <img
+                        src="https://placehold.co/600x400/cec7c0/2e2522?text=NYT&font=serif"
+                        alt="NYT"
+                        class="w-full h-full object-cover grayscale brightness-90 contrast-125 group-hover:scale-105 group-hover:grayscale-0 transition-all duration-700"
+                    />
+                </div>
+                <div class="flex flex-col flex-1">
+                    <span
+                        class="font-mono text-[10px] uppercase tracking-[0.2em] text-text-secondary mb-3 opacity-60"
+                        >Source 01</span
+                    >
+                    <h4
+                        class="font-serif text-3xl text-text-primary mb-4 leading-tight"
+                    >
+                        The New York Times
+                    </h4>
+                    <p
+                        class="text-text-secondary text-sm mb-8 line-clamp-2 leading-relaxed italic opacity-80"
+                    >
+                        The most trusted name in journalism. World news,
+                        politics, and culture.
+                    </p>
+                    <button
+                        class="suggested-feed-btn mt-auto flex items-center justify-center gap-2 text-xs font-bold font-sans tracking-widest text-bg-primary bg-text-primary uppercase no-underline px-4 py-3 hover:bg-accent hover:text-white transition-all shadow-lg"
+                        data-url="https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml"
+                        data-title="NYT Top Stories"
+                    >
+                        <Icon name="Plus" size={14} />
+                        Add Subscription
+                    </button>
+                </div>
+            </div>
+
+            <div
+                class="flex flex-col group border-t-4 border-text-primary pt-6"
+            >
+                <div
+                    class="aspect-video bg-bg-secondary overflow-hidden relative mb-6"
+                >
+                    <img
+                        src="https://placehold.co/600x400/cec7c0/2e2522?text=The Verge&font=serif"
+                        alt="The Verge"
+                        class="w-full h-full object-cover grayscale brightness-90 contrast-125 group-hover:scale-105 group-hover:grayscale-0 transition-all duration-700"
+                    />
+                </div>
+                <div class="flex flex-col flex-1">
+                    <span
+                        class="font-mono text-[10px] uppercase tracking-[0.2em] text-text-secondary mb-3 opacity-60"
+                        >Source 02</span
+                    >
+                    <h4
+                        class="font-serif text-3xl text-text-primary mb-4 leading-tight"
+                    >
+                        The Verge
+                    </h4>
+                    <p
+                        class="text-text-secondary text-sm mb-8 line-clamp-2 leading-relaxed italic opacity-80"
+                    >
+                        Tech, gadgets, science, and the future of media.
+                    </p>
+                    <button
+                        class="suggested-feed-btn mt-auto flex items-center justify-center gap-2 text-xs font-bold font-sans tracking-widest text-bg-primary bg-text-primary uppercase no-underline px-4 py-3 hover:bg-accent hover:text-white transition-all shadow-lg"
+                        data-url="https://www.theverge.com/rss/index.xml"
+                        data-title="The Verge"
+                    >
+                        <Icon name="Plus" size={14} />
+                        Add Subscription
+                    </button>
+                </div>
+            </div>
+
+            <div
+                class="flex flex-col group border-t-4 border-text-primary pt-6"
+            >
+                <div
+                    class="aspect-video bg-bg-secondary overflow-hidden relative mb-6"
+                >
+                    <img
+                        src="https://placehold.co/600x400/cec7c0/2e2522?text=TechCrunch&font=serif"
+                        alt="TechCrunch"
+                        class="w-full h-full object-cover grayscale brightness-90 contrast-125 group-hover:scale-105 group-hover:grayscale-0 transition-all duration-700"
+                    />
+                </div>
+                <div class="flex flex-col flex-1">
+                    <span
+                        class="font-mono text-[10px] uppercase tracking-[0.2em] text-text-secondary mb-3 opacity-60"
+                        >Source 03</span
+                    >
+                    <h4
+                        class="font-serif text-3xl text-text-primary mb-4 leading-tight"
+                    >
+                        TechCrunch
+                    </h4>
+                    <p
+                        class="text-text-secondary text-sm mb-8 line-clamp-2 leading-relaxed italic opacity-80"
+                    >
+                        Breaking news and analysis on startups and technology.
+                    </p>
+                    <button
+                        class="suggested-feed-btn mt-auto flex items-center justify-center gap-2 text-xs font-bold font-sans tracking-widest text-bg-primary bg-text-primary uppercase no-underline px-4 py-3 hover:bg-accent hover:text-white transition-all shadow-lg"
+                        data-url="https://techcrunch.com/feed/"
+                        data-title="TechCrunch"
+                    >
+                        <Icon name="Plus" size={14} />
+                        Add Subscription
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div
+            class="mt-20 flex flex-col items-center gap-6 opacity-40 hover:opacity-100 transition-opacity duration-700"
+        >
+            <div class="h-12 w-px bg-text-primary"></div>
+            <p class="font-mono text-[10px] uppercase tracking-[0.3em]">
+                Or add your own from the sidebar
+            </p>
+        </div>
+    </div>
+</div>
+
+<script>
+    import { supabase } from "../lib/supabase";
+
+    document.querySelectorAll(".suggested-feed-btn").forEach((btn) => {
+        btn.addEventListener("click", async () => {
+            const b = btn as HTMLButtonElement;
+            const url = b.dataset.url;
+            if (!url) return;
+
+            b.disabled = true;
+            b.textContent = "Adding...";
+
+            try {
+                const {
+                    data: { session },
+                } = await supabase.auth.getSession();
+                if (!session) {
+                    window.location.href = "/login";
+                    return;
+                }
+
+                const response = await fetch("/api/feeds/add", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${session.access_token}`,
+                    },
+                    body: JSON.stringify({ url }),
+                });
+
+                if (response.ok) {
+                    window.location.reload();
+                } else {
+                    const result = await response.json();
+                    alert(result.error || "Failed to add feed");
+                    b.disabled = false;
+                    b.textContent = "Add Feed";
+                }
+            } catch (err) {
+                console.error(err);
+                b.disabled = false;
+                b.textContent = "Add Feed";
+            }
+        });
+    });
+</script>

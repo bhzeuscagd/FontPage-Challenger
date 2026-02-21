@@ -96,6 +96,16 @@ import Icon from "./Icon.astro";
     form?.addEventListener("submit", async (e) => {
         e.preventDefault();
 
+        const params = new URLSearchParams(window.location.search);
+        const isGuest = params.get("guest") === "true";
+
+        if (isGuest) {
+            alert(
+                "Guest users cannot add new feeds. Please sign in to customize your subscriptions.",
+            );
+            return;
+        }
+
         const url = urlInput.value.trim();
         if (!url) return;
 

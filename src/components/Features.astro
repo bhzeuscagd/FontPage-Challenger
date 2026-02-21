@@ -1,0 +1,208 @@
+---
+
+---
+
+<div class="features-shutter-wrapper relative h-[300vh] z-30">
+    <!-- Sticky Viewport -->
+    <div
+        class="sticky-viewport sticky top-0 h-screen w-full overflow-hidden bg-bg-primary"
+    >
+        <!-- REVEALED CONTENT (Becomes visible as shutter slides up) -->
+        <div
+            class="revealed-content absolute inset-0 z-10 flex items-center justify-center"
+        >
+            <div
+                class="grid grid-cols-1 md:grid-cols-3 w-full h-full max-w-none bg-bg-primary"
+            >
+                <!-- Feature I -->
+                <div
+                    class="feature-col relative p-12 md:p-16 lg:p-20 flex flex-col justify-end border-b md:border-b-0 md:border-r border-text-primary/20 hover:bg-text-primary/2 transition-colors"
+                >
+                    <div class="mb-auto">
+                        <span
+                            class="font-serif text-3xl md:text-4xl text-text-primary opacity-60"
+                            >I.</span
+                        >
+                    </div>
+                    <div class="mt-8">
+                        <h3
+                            class="font-serif text-4xl md:text-5xl lg:text-6xl text-text-primary mb-6 leading-tight"
+                        >
+                            Subscribe
+                        </h3>
+                        <p
+                            class="text-text-secondary leading-relaxed text-lg md:text-xl max-w-sm"
+                        >
+                            Add any RSS or Atom feed URL. Follow tech blogs,
+                            news outlets, and more.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Feature II -->
+                <div
+                    class="feature-col relative p-12 md:p-16 lg:p-20 flex flex-col justify-end border-b md:border-b-0 md:border-r border-text-primary/20 hover:bg-text-primary/2 transition-colors"
+                >
+                    <div class="mb-auto">
+                        <span
+                            class="font-serif text-3xl md:text-4xl text-text-primary opacity-60"
+                            >II.</span
+                        >
+                    </div>
+                    <div class="mt-8">
+                        <h3
+                            class="font-serif text-4xl md:text-5xl lg:text-6xl text-text-primary mb-6 leading-tight"
+                        >
+                            Organize
+                        </h3>
+                        <p
+                            class="text-text-secondary leading-relaxed text-lg md:text-xl max-w-sm"
+                        >
+                            Group feeds into categories, bookmark articles, and
+                            search instantly.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Feature III -->
+                <div
+                    class="feature-col relative p-12 md:p-16 lg:p-20 flex flex-col justify-end hover:bg-text-primary/2 transition-colors"
+                >
+                    <div class="mb-auto">
+                        <span
+                            class="font-serif text-3xl md:text-4xl text-text-primary opacity-60"
+                            >III.</span
+                        >
+                    </div>
+                    <div class="mt-8">
+                        <h3
+                            class="font-serif text-4xl md:text-5xl lg:text-6xl text-text-primary mb-6 leading-tight"
+                        >
+                            Read
+                        </h3>
+                        <p
+                            class="text-text-secondary leading-relaxed text-lg md:text-xl max-w-sm"
+                        >
+                            Clean reader view strips away clutter. Multi-layout
+                            support. Zero distractions.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- THE SHUTTER (Slides UP) -->
+        <div
+            class="shutter-panel absolute inset-0 z-20 bg-bg-primary flex flex-col items-center justify-center p-8 will-change-transform"
+        >
+            <div class="text-center">
+                <p
+                    class="font-mono text-xs md:text-sm tracking-[0.4em] text-text-secondary uppercase mb-8 opacity-60"
+                >
+                    How it works
+                </p>
+                <h2
+                    class="font-serif text-5xl md:text-7xl lg:text-9xl text-text-primary leading-[0.9] tracking-tighter max-w-5xl"
+                >
+                    Take back control <br /> of your reading.
+                </h2>
+            </div>
+
+            <!-- Horizontal line at bottom of shutter to signify it's a panel -->
+            <div
+                class="absolute bottom-0 left-0 w-full h-px bg-text-primary/20"
+            >
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function initShutterReveal() {
+        const wrapper = document.querySelector(
+            ".features-shutter-wrapper",
+        ) as HTMLElement;
+        const shutter = document.querySelector(".shutter-panel") as HTMLElement;
+        const content = document.querySelector(
+            ".revealed-content",
+        ) as HTMLElement;
+        const featureCols = document.querySelectorAll(".feature-col");
+
+        if (!wrapper || !shutter || !content) return;
+
+        function updateShutter() {
+            const rect = wrapper.getBoundingClientRect();
+            const scrollPos = window.scrollY;
+            const start = rect.top + scrollPos;
+            const scrollDistance = rect.height - window.innerHeight;
+
+            // Normalize progress: 0 (closed) to 1 (fully open)
+            let progress = Math.max(
+                0,
+                Math.min(1, (scrollPos - start) / scrollDistance),
+            );
+
+            // Shutter sliding UP
+            shutter.style.transform = `translateY(-${progress * 100}%)`;
+
+            // Content enters with a subtle scale and opacity
+            const contentProgress = Math.max(
+                0,
+                Math.min(1, (progress - 0.1) / 0.9),
+            );
+            content.style.opacity = (contentProgress * 1.5).toString(); // Faster fade in
+            content.style.transform = `scale(${0.98 + contentProgress * 0.02})`;
+
+            // STAGGERED COLUMNS REVEAL
+            featureCols.forEach((col, index) => {
+                const c = col as HTMLElement;
+                // Stagger: col 0 starts at 0.2, col 1 at 0.35, col 2 at 0.5
+                const colStart = 0.2 + index * 0.15;
+                const colProgress = Math.max(
+                    0,
+                    Math.min(1, (progress - colStart) / 0.4),
+                );
+
+                c.style.opacity = colProgress.toString();
+                c.style.transform = `translateY(${(1 - colProgress) * 40}px)`;
+            });
+
+            // Allow pointer events only when shutter starts opening
+            if (progress > 0.05) {
+                content.style.pointerEvents = "auto";
+            } else {
+                content.style.pointerEvents = "none";
+            }
+
+            // Optimization: hide shutter when fully open
+            if (progress >= 1) {
+                shutter.style.visibility = "hidden";
+            } else {
+                shutter.style.visibility = "visible";
+            }
+        }
+
+        window.addEventListener("scroll", updateShutter, { passive: true });
+        updateShutter(); // Initial call
+    }
+
+    // Initialize on page load
+    initShutterReveal();
+
+    // Handle Astro view transitions
+    document.addEventListener("astro:page-load", initShutterReveal);
+</script>
+
+<style>
+    .revealed-content {
+        transition:
+            opacity 0.05s linear,
+            transform 0.05s linear;
+        will-change: opacity, transform;
+    }
+
+    /* Ensure the vertical lines look high-end */
+    .md\:border-r {
+        border-right-width: 1px;
+    }
+</style>

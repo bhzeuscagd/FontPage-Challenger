@@ -1,0 +1,32 @@
+---
+import AppLayout from "../layouts/AppLayout.astro";
+import Icon from "../components/Icon.astro";
+---
+
+<AppLayout title="Explore - Frontpage">
+    <div class="px-8 py-12 max-w-7xl mx-auto">
+        <div
+            class="flex items-center justify-between mb-12 border-b border-text-primary pb-6"
+        >
+            <h1 class="font-serif text-5xl text-text-primary">Explore Feeds</h1>
+            <div
+                class="flex items-center gap-4 bg-bg-secondary border border-text-primary/10 px-4 py-2 rounded-lg w-full max-w-md"
+            >
+                <Icon name="Search" size={18} class="text-text-secondary" />
+                <input
+                    type="text"
+                    placeholder="Search by topic or URL..."
+                    class="bg-transparent border-none outline-none text-sm w-full font-serif"
+                />
+            </div>
+        </div>
+
+        <div
+            class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 opacity-50 italic font-serif text-xl py-24 text-center"
+        >
+            <p class="col-span-full">
+                "Feed exploration and discovery is coming soon..."
+            </p>
+        </div>
+    </div>
+</AppLayout>

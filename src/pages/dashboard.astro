@@ -3,6 +3,7 @@ import AppLayout from "../layouts/AppLayout.astro";
 import Icon from "../components/Icon.astro";
 import AddFeedModal from "../components/AddFeedModal.astro";
 import FeedActionsMenu from "../components/FeedActionsMenu.astro";
+import DashboardEmptyState from "../components/DashboardEmptyState.astro";
 ---
 
 <AppLayout title="Dashboard - Frontpage">
@@ -51,6 +52,11 @@ import FeedActionsMenu from "../components/FeedActionsMenu.astro";
         </div>
     </div>
 
+    <!-- Empty State Container -->
+    <div id="empty-state-container" class="hidden">
+        <DashboardEmptyState />
+    </div>
+
     <AddFeedModal />
     <button id="logout-btn" class="hidden">Sign Out</button>
 </AppLayout>
@@ -63,12 +69,52 @@ import FeedActionsMenu from "../components/FeedActionsMenu.astro";
     const userInfo = document.querySelector("#user-info") as HTMLElement;
 
     let currentSession: any = null;
+    let isGuest: boolean = false;
     let subscriptions: any[] = [];
     let currentFeedUrl: string = "all";
     let viewMode: string = "cards"; // cards, list, compact
     let userBookmarks: Set<string> = new Set();
 
+    // Curated feeds for guest mode
+    const GUEST_FEEDS = [
+        {
+            id: "guest-1",
+            is_favorite: true,
+            feeds: {
+                url: "https://www.theverge.com/rss/index.xml",
+                title: "The Verge",
+            },
+        },
+        {
+            id: "guest-2",
+            is_favorite: true,
+            feeds: {
+                url: "https://techcrunch.com/feed/",
+                title: "TechCrunch",
+            },
+        },
+        {
+            id: "guest-3",
+            is_favorite: true,
+            feeds: {
+                url: "https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml",
+                title: "NYT Top Stories",
+            },
+        },
+    ];
+
     async function init() {
+        const params = new URLSearchParams(window.location.search);
+        isGuest = params.get("guest") === "true";
+
+        if (isGuest) {
+            currentSession = { guest: true };
+            if (userInfo) userInfo.textContent = "Guest User";
+            loadSubscriptions(); // Sync call for guest
+            await loadFeed("all", "All Subscriptions");
+            return;
+        }
+
         const {
             data: { session },
         } = await supabase.auth.getSession();
@@ -87,6 +133,7 @@ import FeedActionsMenu from "../components/FeedActionsMenu.astro";
     }
 
     async function loadUserBookmarks() {
+        if (isGuest) return;
         try {
             const res = await fetch("/api/bookmarks/list", {
                 headers: {
@@ -103,6 +150,18 @@ import FeedActionsMenu from "../components/FeedActionsMenu.astro";
     }
 
     async function loadSubscriptions() {
+        if (isGuest) {
+            const params = new URLSearchParams(window.location.search);
+            if (params.get("empty") === "true") {
+                subscriptions = [];
+            } else {
+                subscriptions = GUEST_FEEDS;
+            }
+            handleEmptyStateVisibility();
+            renderFavoriteTabs();
+            return;
+        }
+
         try {
             const response = await fetch("/api/feeds/list", {
                 headers: {
@@ -110,9 +169,26 @@ import FeedActionsMenu from "../components/FeedActionsMenu.astro";
                 },
             });
             subscriptions = await response.json();
+            handleEmptyStateVisibility();
             renderFavoriteTabs();
         } catch (err) {
             console.error("Failed to load subs", err);
+        }
+    }
+
+    function handleEmptyStateVisibility() {
+        const emptyState = document.getElementById("empty-state-container");
+        const newsSection = document.getElementById("news-grid");
+        const tabsSection = document.getElementById("subs-tabs")?.parentElement;
+
+        if (subscriptions.length === 0) {
+            emptyState?.classList.remove("hidden");
+            newsSection?.classList.add("hidden");
+            tabsSection?.classList.add("hidden");
+        } else {
+            emptyState?.classList.add("hidden");
+            newsSection?.classList.remove("hidden");
+            tabsSection?.classList.remove("hidden");
         }
     }
 
@@ -163,7 +239,7 @@ import FeedActionsMenu from "../components/FeedActionsMenu.astro";
         updateTabsUI(url);
 
         // Mark as read if subscription ID is present
-        if (subscriptionId) {
+        if (subscriptionId && !isGuest) {
             try {
                 fetch("/api/feeds/mark-read", {
                     method: "POST",
@@ -189,12 +265,43 @@ import FeedActionsMenu from "../components/FeedActionsMenu.astro";
         `;
 
         try {
+            if (isGuest && url === "all") {
+                // Fetch all curated feeds in parallel
+                const promises = GUEST_FEEDS.map((f) =>
+                    fetch(
+                        `/api/feeds/content?url=${encodeURIComponent(f.feeds.url)}`,
+                    ).then((r) => r.json()),
+                );
+                const results = await Promise.all(promises);
+                let allItems: any[] = [];
+                results.forEach((feed: any, index) => {
+                    const items = (feed.items || []).map((item: any) => ({
+                        ...item,
+                        feedTitle: GUEST_FEEDS[index].feeds.title,
+                        feedUrl: GUEST_FEEDS[index].feeds.url,
+                    }));
+                    allItems = allItems.concat(items);
+                });
+
+                // Sort by date
+                allItems.sort(
+                    (a, b) =>
+                        new Date(b.pubDate).getTime() -
+                        new Date(a.pubDate).getTime(),
+                );
+
+                renderNews({ items: allItems }, "all");
+                return;
+            }
+
             const response = await fetch(
                 `/api/feeds/content?url=${encodeURIComponent(url)}`,
                 {
-                    headers: {
-                        Authorization: `Bearer ${currentSession.access_token}`,
-                    },
+                    headers: currentSession.access_token
+                        ? {
+                              Authorization: `Bearer ${currentSession.access_token}`,
+                          }
+                        : {},
                 },
             );
             const feed = await response.json();
@@ -234,15 +341,14 @@ import FeedActionsMenu from "../components/FeedActionsMenu.astro";
                             />
                         </div>
                     </div>
-                    <div class="p-5 pt-4 flex flex-col flex-1">
-                        <h2 class="card-title text-xl font-serif font-bold text-text-primary leading-snug mb-4 group-hover:opacity-70 transition-opacity line-clamp-3">
+                    <div class="p-6 pt-5 flex flex-col flex-1">
+                        <h2 class="card-title text-xl font-serif font-bold text-text-primary leading-tight mb-6 group-hover:text-accent transition-colors duration-300 line-clamp-3">
                             ${item.title}
                         </h2>
-                        <div class="card-meta flex items-center justify-between text-sm text-text-secondary mt-auto">
-                            <div class="flex items-center gap-2">
-                                <span class="font-medium text-text-primary text-sm">${item.feedTitle || feed.title || "Feed"}</span>
-                                <span class="text-sm">▪</span>
-                                <time class="text-sm">${new Date(item.pubDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</time>
+                        <div class="card-meta flex items-center justify-between text-[10px] mt-auto border-t border-text-primary/5 pt-4">
+                            <div class="flex items-center gap-3">
+                                <span class="font-mono uppercase tracking-[0.2em] text-text-primary px-2 py-0.5 bg-text-primary/5 rounded-sm">${item.feedTitle || feed.title || "Feed"}</span>
+                                <time class="font-sans text-text-secondary opacity-60">${new Date(item.pubDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }).toUpperCase()}</time>
                             </div>
                         </div>
                     </div>
@@ -272,6 +378,13 @@ import FeedActionsMenu from "../components/FeedActionsMenu.astro";
             btn.addEventListener("click", async (e) => {
                 e.preventDefault();
                 e.stopPropagation();
+
+                if (isGuest) {
+                    alert(
+                        "Please sign in or create an account to bookmark articles.",
+                    );
+                    return;
+                }
 
                 const b = e.currentTarget as HTMLButtonElement;
                 const itemData = JSON.parse(b.dataset.item || "{}");

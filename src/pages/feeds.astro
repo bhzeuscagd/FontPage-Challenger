@@ -1,0 +1,32 @@
+---
+import AppLayout from "../layouts/AppLayout.astro";
+import Icon from "../components/Icon.astro";
+---
+
+<AppLayout title="My Feeds - Frontpage">
+    <div class="px-8 py-12 max-w-7xl mx-auto">
+        <div
+            class="flex items-center justify-between mb-12 border-b border-text-primary pb-6"
+        >
+            <h1 class="font-serif text-5xl text-text-primary">
+                My Subscriptions
+            </h1>
+            <div class="flex gap-4">
+                <button
+                    class="flex items-center gap-2 px-4 py-2 border border-text-primary/20 text-xs font-mono uppercase tracking-widest hover:bg-text-primary hover:text-bg-primary transition-all"
+                >
+                    <Icon name="Plus" size={14} />
+                    Add Feed
+                </button>
+            </div>
+        </div>
+
+        <div
+            class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 opacity-50 italic font-serif text-xl py-24 text-center"
+        >
+            <p class="col-span-full">
+                "Subscription management is coming soon..."
+            </p>
+        </div>
+    </div>
+</AppLayout>

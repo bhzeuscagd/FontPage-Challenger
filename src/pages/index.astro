@@ -1,11 +1,109 @@
 ---
-import Welcome from '../components/Welcome.astro';
-import Layout from '../layouts/Layout.astro';
-
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+import Layout from "../layouts/Layout.astro";
+import Nav from "../components/Nav.astro";
+import Hero from "../components/Hero.astro";
+import Features from "../components/Features.astro";
 ---
 
-<Layout>
-	<Welcome />
+<Layout title="Frontpage — Your News, Your Rules">
+	<main class="noise-bg min-h-screen">
+		<!-- NAV -->
+		<Nav />
+
+		<!-- HERO -->
+		<Hero />
+
+		<Features />
+
+		<!-- STATS / TRUST -->
+		<section
+			class="relative z-10 px-8 md:px-16 py-24 md:py-32 border-t-[3px] border-text-primary"
+		>
+			<div
+				class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-16 text-center"
+			>
+				<div>
+					<p
+						class="font-mono text-5xl md:text-6xl font-bold text-text-primary mb-2"
+					>
+						∞
+					</p>
+					<p class="font-serif text-lg text-text-secondary">
+						Feeds supported
+					</p>
+				</div>
+				<div>
+					<p
+						class="font-mono text-5xl md:text-6xl font-bold text-text-primary mb-2"
+					>
+						3
+					</p>
+					<p class="font-serif text-lg text-text-secondary">
+						View modes
+					</p>
+				</div>
+				<div>
+					<p
+						class="font-mono text-5xl md:text-6xl font-bold text-text-primary mb-2"
+					>
+						0
+					</p>
+					<p class="font-serif text-lg text-text-secondary">
+						Ads & trackers
+					</p>
+				</div>
+			</div>
+		</section>
+
+		<!-- CTA -->
+		<section
+			class="relative z-10 px-8 md:px-16 py-24 md:py-32 border-t-[3px] border-text-primary"
+		>
+			<div class="max-w-3xl mx-auto text-center">
+				<h2
+					class="font-mono font-bold text-4xl md:text-6xl leading-tight text-text-primary mb-6"
+				>
+					START READING<br />NOW
+				</h2>
+				<p
+					class="font-serif text-lg md:text-xl text-text-secondary mb-12 max-w-lg mx-auto leading-relaxed"
+				>
+					Join Frontpage and take back control of your news diet.
+					Free, open, and built for readers.
+				</p>
+				<a
+					href="/register"
+					class="inline-flex items-center gap-2 font-mono text-sm font-semibold text-bg-primary bg-text-primary px-10 py-4 rounded-md hover:opacity-90 transition-opacity no-underline border-[3px] border-text-primary"
+				>
+					CREATE YOUR ACCOUNT →
+				</a>
+			</div>
+		</section>
+
+		<!-- FOOTER -->
+		<footer
+			class="relative z-10 px-8 md:px-16 py-8 border-t-[3px] border-text-primary flex flex-col md:flex-row items-center justify-between gap-4"
+		>
+			<p class="font-mono text-xs text-text-secondary">
+				© 2026 FRONTPAGE
+			</p>
+			<div class="flex items-center gap-6">
+				<a
+					href="/login"
+					class="text-xs text-text-secondary hover:text-text-primary transition-colors no-underline"
+					>Sign in</a
+				>
+				<a
+					href="/register"
+					class="text-xs text-text-secondary hover:text-text-primary transition-colors no-underline"
+					>Register</a
+				>
+				<a
+					href="/dashboard"
+					class="text-xs text-text-secondary hover:text-text-primary transition-colors no-underline"
+					>Dashboard</a
+				>
+			</div>
+		</footer>
+	</main>
 </Layout>
